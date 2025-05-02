@@ -1,0 +1,8 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use Digest::CRC qw(crc32);
+
+undef $/;
+print crc32(<STDIN>) . "\n";

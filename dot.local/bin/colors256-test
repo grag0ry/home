@@ -1,0 +1,11 @@
+#!/bin/bash
+
+cols=8
+rows=$(( 256/$cols ))
+for r in $(seq 0 $(( rows-1 ))); do
+    for c in $(seq 0 $(( cols-1 ))); do
+        local color=$(( r + rows * c ))
+        printf "%03d \033[38;5;${color}mABCD\033[0m | " $color
+    done
+    echo
+done
