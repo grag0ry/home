@@ -13,8 +13,16 @@ $(CONFIG):
 
 .PHONY: config
 config:
-	$(RM) $(CONFIG)
-	$(MAKE) $(CONFIG)
+	@$(RM) "$(CONFIG)"
+	@$(MAKE) true
+
+.PHONY: print-config
+print-config:
+	@cat "$(CONFIG)"
+
+.PHONY: true
+true:
+	@true
 
 M4=m4 -P $(foreach v,$(filter CFG_%, $(.VARIABLES)),-D"m4_$(v)=$($(v))")
 

@@ -1,3 +1,6 @@
 # /etc/skel/.bash_profile
 
-source "m4_CFG_HOME()/.config/bash/bashrc.bash"
+if [[ $- != *i* ]] ; then
+    # Shell is non-interactive.  Be done now!
+    return 0
+fi

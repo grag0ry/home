@@ -21,6 +21,9 @@ CFG_HOME=$(realpath -m "$CFG_HOME")
 [[ ! -v CFG_NVIM && -n $(command -v nvim) ]] && CFG_NVIM=1
 
 while IFS= read -r var; do
-    [[ -n ${!var:-} ]] || continue
-    printf "override %s = %s\n" "$var" "${!var}"
-done < <(set | sed -n -e 's/^\(CFG_\w\+\)=.*/\1/p')
+    if [[ -n ${!var:-} ]]; then
+        printf "override %s = %s\n" "$var" "${!var}"
+    else
+        printf "# override %s =\n" "$var"
+    fi
+done < <(set | sed -n -e 's/^\(CFG_\w\+\)=.*/\1/p' | sort)

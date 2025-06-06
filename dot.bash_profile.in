@@ -1,3 +1,11 @@
 # /etc/skel/.bash_profile
 
-source "m4_CFG_HOME()/.config/bash/profile.bash"
+source "m4_CFG_HOME()/.config/bash/env.bash"
+
+m4_ifdef(`m4_CFG_WSL', `source "m4_CFG_HOME()/.config/bash/wsl.profile.bash"')
+
+if [[ -z $SSH_CONNECTION && -e /usr/bin/gpg-agent ]]; then
+    pgrep -u $USER gpg-agent > /dev/null || eval "$(/usr/bin/gpg-agent --daemon)"
+    export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
+    export GPG_TTY=$(tty)
+fi

@@ -1,1 +1,0 @@
-export PATH="m4_CFG_HOME()/.local/bin:$PATH"
