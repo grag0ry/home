@@ -10,10 +10,10 @@ ENVD += env.d/path.bash
 ENVD += env.d/wine.bash
 
 SRC = bashrc.bash profile.bash
-ifneq ($(origin WSL), undefined)
+ifneq ($(origin CFG_WSL), undefined)
 	SRC += wsl.profile.bash
 endif
 
 install: $(SRC) $(ENVD)
-	install -m 00644 -D -t "$(DESTDIR)$(HOMEDIR)/.config/bash" $(SRC)
-	install -m 00644 -D -t "$(DESTDIR)$(HOMEDIR)/.config/bash/env.d" $(ENVD)
+	install -m 00644 -D -t "$(DESTDIR)$(CFG_HOME)/.config/bash" $(SRC)
+	install -m 00644 -D -t "$(DESTDIR)$(CFG_HOME)/.config/bash/env.d" $(ENVD)

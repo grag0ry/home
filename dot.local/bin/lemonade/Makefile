@@ -5,7 +5,7 @@ build: lemonade
 
 .PHONY: install
 install: lemonade
-	install -m 00755 -s -D -t "$(DESTDIR)$(HOMEDIR)/.local/bin" "$<"
+	install -m 00755 -s -D -t "$(DESTDIR)$(CFG_HOME)/.local/bin" "$<"
 
 .PHONY: clean
 clean:

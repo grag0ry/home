@@ -1,3 +1,3 @@
 # /etc/skel/.bash_profile
 
-source "m4_HOMEDIR()/.config/bash/profile.bash"
+source "m4_CFG_HOME()/.config/bash/profile.bash"

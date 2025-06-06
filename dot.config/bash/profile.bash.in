@@ -1,6 +1,6 @@
-source "m4_HOMEDIR()/.config/bash/env.d/"*.bash
-source "m4_HOMEDIR()/.config/bash/bashrc.bash"
-m4_ifdef(`m4_WSL', `source "m4_HOMEDIR()/.config/bash/wsl.profile.bash"')
+source "m4_CFG_HOME()/.config/bash/env.d/"*.bash
+source "m4_CFG_HOME()/.config/bash/bashrc.bash"
+m4_ifdef(`m4_CFG_WSL', `source "m4_CFG_HOME()/.config/bash/wsl.profile.bash"')
 
 
 if [[ -z $SSH_CONNECTION ]]; then

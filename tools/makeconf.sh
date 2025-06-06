@@ -1,24 +1,26 @@
-#!/bin/sh
+#!/bin/bash
 
+# shellcheck disable=SC2034
 set -e -u -o pipefail
 
-if [[ -n ${1:-} ]]; then
-    OS=$1
-else
-    OS=$(uname -s)
-fi
+: "${CFG_OS:=$(uname -s)}"
 
-[[ $(uname -r) = *-microsoft-* ]] && WSL=1 || WSL=
+[[ ! -v CFG_WSL && $(uname -r) = *-microsoft-* ]] && CFG_WSL=1
 
-if [[ -n ${2:-} ]]; then
-    OSID=$2
+if [[ -n ${CFG_OSID:-} ]]; then
+    true
 elif [[ $(uname -s) = *CYGWIN* ]]; then
-    OSID=cygwin
+    CFG_OSID=cygwin
 else
-    eval "$(sed -n s/^ID=/OSID=/p /etc/os-release)"
+    eval "$(sed -n s/^ID=/CFG_OSID=/p /etc/os-release)"
 fi
 
-HOMEDIR=$(realpath -m "${3:-$HOME}")
+: "${CFG_HOME:=$HOME}"
+CFG_HOME=$(realpath -m "$CFG_HOME")
 
-printf "override %s = %s\n" OS "$OS" OSID "$OSID" HOMEDIR "${HOMEDIR}"
-[[ -n $WSL ]] && printf "WSL = 1\n"
+[[ ! -v CFG_NVIM && -n $(command -v nvim) ]] && CFG_NVIM=1
+
+while IFS= read -r var; do
+    [[ -n ${!var:-} ]] || continue
+    printf "override %s = %s\n" "$var" "${!var}"
+done < <(set | sed -n -e 's/^\(CFG_\w\+\)=.*/\1/p')

@@ -9,12 +9,14 @@ CONFIG = $(PRJROOT)config.mk
 
 include $(CONFIG)
 $(CONFIG):
-	$(TOOLS)makeconf.sh "$(OS)" "$(OSID)" "$(HOMEDIR)" > "$@"
+	$(TOOLS)makeconf.sh > "$@"
 
-M4=m4 -P -D"m4_OS=$(OS)" -D"m4_OSID=$(OSID)" -D"m4_HOMEDIR=$(HOMEDIR)"
-ifneq ($(origin WSL), undefined)
-	M4 += -Dm4_WSL
-endif
+.PHONY: config
+config:
+	$(RM) $(CONFIG)
+	$(MAKE) $(CONFIG)
+
+M4=m4 -P $(foreach v,$(filter CFG_%, $(.VARIABLES)),-D"m4_$(v)=$($(v))")
 
 define subdir-target =
 .PHONY: $1-build $1-install $1-clean
