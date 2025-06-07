@@ -7,13 +7,12 @@ PRJROOT = $(dir $(lastword $(MAKEFILE_LIST)))
 TOOLS = $(PRJROOT)tools/
 CONFIG = $(PRJROOT)config.mk
 
-include $(CONFIG)
 $(CONFIG):
 	$(TOOLS)makeconf.sh > "$@"
 
 .PHONY: config
 config:
-	@$(RM) "$(CONFIG)"
+	@mv "$(CONFIG)" "$(CONFIG).old"
 	@$(MAKE) true
 
 .PHONY: print-config
@@ -23,6 +22,8 @@ print-config:
 .PHONY: true
 true:
 	@true
+
+include $(CONFIG)
 
 define NL=
 
