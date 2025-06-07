@@ -1,0 +1,15 @@
+[user]
+    email = gragory.mail@gmail.com
+    name = Gregory Kudrenko
+
+[color]
+    ui = auto
+[alias]
+    hist = log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short
+    tree = log --graph --oneline --all
+
+[core]
+    excludesFile = ~/.gitignore
+
+[include]
+    path = ~/.gitconfig-private

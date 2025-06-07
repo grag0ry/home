@@ -3,10 +3,6 @@ include ../../../common.mk
 .PHONY: build
 build: lemonade
 
-.PHONY: install
-install: lemonade
-	install -m 00755 -s -D -t "$(DESTDIR)$(CFG_HOME)/.local/bin" "$<"
-
 .PHONY: clean
 clean:
 	$(RM) lemonade_linux_amd64.tar.gz lemonade
@@ -19,3 +15,6 @@ lemonade_linux_amd64.tar.gz:
 lemonade: lemonade_linux_amd64.tar.gz
 	tar xzf lemonade_linux_amd64.tar.gz
 	touch "$@"
+
+$(call install,00755,lemonade,.local/bin/lemonade)
+

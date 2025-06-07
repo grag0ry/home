@@ -2,10 +2,7 @@ include ../../common.mk
 
 $(call m4,env.bash)
 
-SRC = env.bash
+$(call install,00644,env.bash)
 ifneq ($(origin CFG_WSL), undefined)
-	SRC += wsl.profile.bash
+$(call install,00644,wsl.profile.bash)
 endif
-
-install: $(SRC)
-	install -m 00644 -D -t "$(DESTDIR)$(CFG_HOME)/.config/bash" $(SRC)

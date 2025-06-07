@@ -24,6 +24,11 @@ print-config:
 true:
 	@true
 
+define NL=
+
+
+endef
+
 M4=m4 -P $(foreach v,$(filter CFG_%, $(.VARIABLES)),-D"m4_$(v)=$($(v))")
 
 define subdir-target =
@@ -54,7 +59,18 @@ build: $1
 clean: $1-clean
 endef
 
+define install-target =
+install-cmd += $$(NL)install -m $1 -D -T "$2"
+install-cmd += $$(DESTDIR)$$(CFG_HOME)/$(if $3,$3,$$(subst dot.,.,$$(patsubst $$(abspath $$(PRJROOT))/%,%,$$(abspath $2))))
+install: $2
+endef
+
+install:
+	$(install-cmd)
+
 subdir = $(eval $(call subdir-target,$1))
 m4 = $(eval $(call m4-target,$1,$2))
+install = $(eval $(call install-target,$1,$2,$3))
+
 find = $(wildcard $1/$2) $(foreach d,$(wildcard $(1:=/*/)),$(call find,$(d:/=),$2))
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
