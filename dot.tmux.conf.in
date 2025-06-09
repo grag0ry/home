@@ -7,22 +7,22 @@ set -g base-index 1
 # window title string (uses statusbar variables)
 # set -g set-titles-string '#S / #W / #T'
 set -g set-titles-string '#T'
-set-window-option -g allow-rename on
-set-window-option -g automatic-rename on
+set -gw allow-rename on
+set -gw automatic-rename on
+set -gw renumber-windows on
 
 set -g status-bg black
 set -g status-fg white
 
 set -g status-left '#[bg=brightgreen]#[fg=black] #S #{?#{==:#{active_window_index},1},#[bg=blue],#[bg=black]}#[fg=brightgreen]'
-
 set -g status-left-length 50
+
 set -g status-right '#[bg=black]#[fg=brightgreen]#[bg=brightgreen]#[fg=black]%d.%m.%Y %H:%M '
 set -g window-status-format ' #I:#P #W#{?window_zoomed_flag, 󰘖,}#{?#{==:#{e|+|:#I,1},#{active_window_index}}, #[bg=blue]#[fg=black],#[bg=black]#[fg=white] }'
 set -g window-status-current-format ' #I:#P #W#{?window_zoomed_flag, 󰘖,} #[bg=black]#[fg=blue]'
-setw -g window-status-current-style bg=blue,fg=black
+set -gw window-status-current-style bg=blue,fg=black
 set -g window-status-separator ""
 
-# pane border colors
 set -g pane-active-border-style fg=blue
 set -g pane-border-style fg=white
 
@@ -34,10 +34,10 @@ bind-key -r = resize-pane -D 1
 bind-key % split-window -h -c '#{pane_current_path}'
 bind-key '"' split-window -c '#{pane_current_path}'
 
-unbind C-Right
-unbind C-Left
-unbind C-Down
-unbind C-Up
+unbind-key C-Right
+unbind-key C-Left
+unbind-key C-Down
+unbind-key C-Up
 
 # Bind to reload config
 bind r source-file ~/.tmux.conf
