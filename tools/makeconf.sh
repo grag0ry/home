@@ -20,6 +20,7 @@ CFG_HOME=$(realpath -m "$CFG_HOME")
 : "${CFG_NVIM=$([[ -n $(command -v nvim) ]] && echo 1 || echo)}"
 : "${CFG_GNUPG_AGENT=}"
 : "${CFG_LEMONADE=1}"
+: "${CFG_SET_NERDFONTS=}"
 
 while IFS= read -r var; do
     if [[ -n ${!var:-} ]]; then
