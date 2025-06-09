@@ -11,5 +11,3 @@ if [[ -z $SSH_CONNECTION && -e /usr/bin/gpg-agent ]]; then
     export GPG_TTY=$(tty)
 fi
 `')
-
-alias tmux="tmux -2"
