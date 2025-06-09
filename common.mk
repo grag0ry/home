@@ -7,30 +7,24 @@ PRJROOT = $(dir $(lastword $(MAKEFILE_LIST)))
 TOOLS = $(PRJROOT)tools/
 CONFIG = $(PRJROOT)config.mk
 
-$(CONFIG):
-	$(TOOLS)makeconf.sh > "$@"
+-include $(CONFIG)
 
 .PHONY: config
 config:
-	@mv "$(CONFIG)" "$(CONFIG).old"
-	@$(MAKE) true
+	$(TOOLS)makeconf.sh > "$(CONFIG)"
+
+$(foreach v,$(filter CFG_%, $(.VARIABLES)),$(eval config: export $v=$($v)))
 
 .PHONY: print-config
 print-config:
 	@cat "$(CONFIG)"
-
-.PHONY: true
-true:
-	@true
-
-include $(CONFIG)
 
 define NL=
 
 
 endef
 
-M4=m4 -P $(foreach v,$(filter CFG_%, $(.VARIABLES)),-D"m4_$(v)=$($(v))")
+M4=m4 -P $(foreach v,$(filter CFG_%, $(.VARIABLES)),$(if $($v),-D"m4_$(v)=$($(v))"))
 
 define subdir-target =
 .PHONY: $1-build $1-install $1-clean

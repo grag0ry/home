@@ -19,11 +19,12 @@ CFG_HOME=$(realpath -m "$CFG_HOME")
 : "${CFG_WSL=$([[ $(uname -r) = *-microsoft-* ]] && echo 1 || echo)}"
 : "${CFG_NVIM=$([[ -n $(command -v nvim) ]] && echo 1 || echo)}"
 : "${CFG_GNUPG_AGENT=}"
+: "${CFG_LEMONADE=1}"
 
 while IFS= read -r var; do
     if [[ -n ${!var:-} ]]; then
         printf "override %s = %s\n" "$var" "${!var}"
     else
-        printf "# override %s =\n" "$var"
+        printf "override %s =\n" "$var"
     fi
 done < <(set | sed -n -e 's/^\(CFG_\w\+\)=.*/\1/p' | sort)

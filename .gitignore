@@ -1,4 +1,4 @@
 config.mk
-config.mk.old
 dot.bash_profile
 dot.bashrc
+dot.tmux.conf
