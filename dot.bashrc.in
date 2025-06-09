@@ -6,3 +6,6 @@ if [[ $- != *i* ]] ; then
 fi
 
 alias tmux="tmux -2"
+if [[ -v NERDFONTS ]]; then
+    alias eza="eza --icons=always"
+fi
