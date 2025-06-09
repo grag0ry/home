@@ -3,6 +3,8 @@ set -g set-titles on
 
 set -g mouse on
 set -g base-index 1
+# prevent 11;rgb:0808/0808/0808
+set -gs escape-time 500
 
 # window title string (uses statusbar variables)
 # set -g set-titles-string '#S / #W / #T'
