@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -eE -u -o pipefail
+
+declare -A img
+declare -a imgid
+
+coproc lsimages {
+    docker images --format 'table {{printf "%s\x1f%s:%s" .ID .Repository .Tag}}'
+}
+lsimages_pid=$!
+IFS= read -r -u "${lsimages[0]}"
+while IFS=$'\x1f' read -a line -r -u "${lsimages[0]}"; do
+    img[${line[0]}]=${line[1]}
+    imgid+=("${line[0]}")
+done
+wait $lsimages_pid || { echo >&2 "Failed to list docker images"; exit 1; }
+unset lsimages_pid lsimages
+
+if (( $# == 0 )); then
+    echo "images:"
+    for (( i=0; i<${#imgid[@]}; i++ )); do
+        id=${imgid[i]}
+        printf "%2d %s %s\n" $i "$id" "${img[$id]}"
+    done
+    exit 0
+fi
+
+[[ $1 =~ ^[0-9]$ && $1 -lt ${#imgid[@]} ]] && image=${imgid[$1]} || image=$1
+shift
+
+unset imgid img
+
+DOCKER_ARGS=(
+    --rm
+    -w "/mnt/hfs/$PWD"
+    -v "/:/mnt/hfs:ro"
+    --tmpfs /run
+)
+[[ -v DR_ARGS ]] && eval "DOCKER_ARGS+=($DR_ARGS)"
+[[ -t 0 ]] && DOCKER_ARGS+=("-t")
+DOCKER_ARGS+=(-i "$image")
+(( $# == 0 )) && set -- /bin/bash -i -l
+
+docker run "${DOCKER_ARGS[@]}" "$@"
