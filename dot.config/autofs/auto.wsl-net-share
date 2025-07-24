@@ -1,0 +1,1 @@
+*	-fstype=drvfs,umask=077,uid=${UID},gid=${GID},nodev,nosuid,ro  ://${host}/&

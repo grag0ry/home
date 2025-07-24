@@ -1,0 +1,1 @@
+*	-fstype=autofs,-Dhost=&       file://etc/autofs/auto.wsl-net-share
