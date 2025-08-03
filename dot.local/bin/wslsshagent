@@ -23,3 +23,5 @@ server() {
         sleep 1m
     done
 }
+
+main "$@"
