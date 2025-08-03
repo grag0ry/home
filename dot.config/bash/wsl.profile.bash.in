@@ -19,7 +19,7 @@ if [[ -n $cmdpath ]]; then
             [[ -n $o_raw ]] \
                 && printf "${o_export:+export }%q=%q\n" "$var" "$val" \
                 || winenv[$var]=$val
-        done < <(cd "$(wslpath C:/)" && cmd /D /C set)
+        done < <(cd "$(wslpath C:/)" && "Windows/System32/cmd.exe" /D /C set)
         [[ -n $o_raw ]] && return 0
 
         xwslpath() { [[ -n $1 ]] && wslpath "$1" 2>/dev/null; }
@@ -51,3 +51,16 @@ if [[ -n $cmdpath ]]; then
     unset path
 fi
 unset cmdpath
+
+if [[ -z ${SSH_TTY:-} && -z ${SSH_AUTH_SOCK:-} ]]; then
+    eval "$(wslsshagent)"
+fi
+
+m4_ifdef(`m4_CFG_X',
+if [[ -n ${SSH_TTY:-} ]]; then
+    export XDG_RUNTIME_DIR=/mnt/wslg/runtime-dir
+    export DISPLAY=:0
+    export WAYLAND_DISPLAY=wayland-0
+    export PULSE_SERVER=unix:/mnt/wslg/PulseServer
+fi
+)

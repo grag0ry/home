@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -e -u -o pipefail
+
+readonly SOCK=/tmp/wslsshagent/auth.sock
+
+main() {
+    while getopts "s" a; do case "$a" in
+        s) server; return 0 ;;
+        *) return 1 ;;
+    esac; done
+    printf "export SSH_AUTH_SOCK=%q\n" "$SOCK"
+}
+
+die() { printf >&2 "%s\n" "$@"; exit 127; }
+ppid() { sed 's/.*) [[:alnum:]] \([0-9]\+\).*/\1/' /proc/$$/stat; }
+
+server() {
+    [[ -n "${SSH_AUTH_SOCK:-}" ]] || die "SSH_AUTH_SOCK is null"
+    install -m 00700 -d "$(dirname "$SOCK")"
+    ln -sf "${SSH_AUTH_SOCK}" "${SOCK}"
+    while [[ $(ppid) != 1 ]]; do
+        sleep 1m
+    done
+}

@@ -22,6 +22,15 @@ CFG_HOME=$(realpath -m "$CFG_HOME")
 : "${CFG_LEMONADE=1}"
 : "${CFG_SET_NERDFONTS=}"
 
+if [[ -z "${CFG_X+defined}" ]]; then
+    CFG_X=
+    if [[ -n $CFG_WSL ]]; then
+        if ! grep -q guiApplications\\s*=\\s*false /etc/wsl.conf >/dev/null; then
+            CFG_X=1
+        fi
+    fi
+fi
+
 while IFS= read -r var; do
     if [[ -n ${!var:-} ]]; then
         printf "override %s = %s\n" "$var" "${!var}"

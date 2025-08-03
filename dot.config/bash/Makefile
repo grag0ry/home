@@ -1,6 +1,7 @@
 include ../../common.mk
 
 $(call m4,env.bash)
+$(call m4,wsl.profile.bash)
 
 $(call install,00644,env.bash)
 ifneq ($(CFG_WSL),)
