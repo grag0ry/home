@@ -55,9 +55,13 @@ clean: $1-clean
 endef
 
 define install-target =
-install-cmd += $$(NL)install -m $1 -D -T "$2"
-install-cmd += $$(DESTDIR)$$(CFG_HOME)/$(if $3,$3,$$(subst dot.,.,$$(patsubst $$(abspath $$(PRJROOT))/%,%,$$(abspath $2))))
+install-cmd += $$(NL)install -m $1 -D -T "$2" "$$(DESTDIR)$$(CFG_HOME)/$3"
 install: $2
+endef
+
+define install-wildcard-target =
+install-cmd += $$(NL)install -m $1 -D -t "$$(DESTDIR)$$(CFG_HOME)/$(dir $3)" $2
+install: build
 endef
 
 install:
@@ -65,7 +69,9 @@ install:
 
 subdir = $(eval $(call subdir-target,$1))
 m4 = $(eval $(call m4-target,$1,$2))
-install = $(eval $(call install-target,$1,$2,$3))
+install-path = $(subst dot.,.,$(patsubst $(abspath $(PRJROOT))/%,%,$(abspath $1)))
+install = $(eval $(call install-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
+install-wildcard = $(eval $(call install-wildcard-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
 
 find = $(wildcard $1/$2) $(foreach d,$(wildcard $(1:=/*/)),$(call find,$(d:/=),$2))
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
