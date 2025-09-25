@@ -64,6 +64,10 @@ install-cmd += $$(NL)install -m $1 -D -t "$$(DESTDIR)$$(CFG_HOME)/$(dir $3)" $2
 install: build
 endef
 
+define install-symlink-target =
+install-cmd += $$(NL)ln -sf "$1" "$$(DESTDIR)$$(CFG_HOME)/$(dir $3)$2"
+endef
+
 install:
 	$(install-cmd)
 
@@ -72,6 +76,6 @@ m4 = $(eval $(call m4-target,$1,$2))
 install-path = $(subst dot.,.,$(patsubst $(abspath $(PRJROOT))/%,%,$(abspath $1)))
 install = $(eval $(call install-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
 install-wildcard = $(eval $(call install-wildcard-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
-
+install-symlink = $(eval $(call install-symlink-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
 find = $(wildcard $1/$2) $(foreach d,$(wildcard $(1:=/*/)),$(call find,$(d:/=),$2))
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))

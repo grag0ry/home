@@ -5,6 +5,8 @@ $(call subdir,lemonade)
 endif
 ifneq ($(CFG_WSL),)
 $(call install,00755,wslsshagent)
+$(call install,00755,wslwrap)
+$(call install-symlink,wslwrap,git)
 endif
 
 $(call install,00755,crc32)
