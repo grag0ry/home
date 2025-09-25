@@ -29,7 +29,16 @@ xwhich() {
 
 git-wrapper() {
     if test-winpath "$PWD"; then
-        exec "$(PATH="$WIN_PATH:$PATH" which git.exe)" "$@"
+        local -a cmd
+        cmd=("$(PATH="$WIN_PATH:$PATH" which git.exe)" "$@")
+        case "${1:-}" in
+            rev-parse)
+                "${cmd[@]}" | sed -e '/[A-Z]:[\\\/]/{s,\\,/,g; s,\([A-Z]\):/,/mnt/\L\1/,g}'
+            ;;
+            *)
+                exec "${cmd[@]}"
+            ;;
+        esac
     else
         exec "$(xwhich git)" "$@"
     fi
