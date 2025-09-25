@@ -1,0 +1,38 @@
+#!/bin/bash
+
+set -e -u -o pipefail
+
+SCRIPT_PATH=$(realpath "${BASH_SOURCE[0]}"); readonly SCRIPT_PATH
+
+main() {
+    local prog="${1:-}"; shift
+    case "$prog" in
+        git) git-wrapper "$@" ;;
+        "${SCRIPT_PATH##*/}") main "$@" ;;
+        *) echo >&2 "usage: wslwrap PROG ARGS..."; return 1; ;;
+    esac
+}
+
+test-winpath() { [[ $(stat -c %T -f "${1:-}") = v9fs ]]; }
+
+xwhich() {
+    local p
+    while IFS= read -r p; do
+        [[ $(realpath "$p") = "$SCRIPT_PATH" ]] && continue
+        printf "%s\n" "$p"
+        return 0
+    done < <(type -ap "${1:?xwhich: no prog provided}")
+    printf >&2 "%s: not found\n" "$1"
+    printf "%s\n" "/bin/false"
+    return 1
+}
+
+git-wrapper() {
+    if test-winpath "$PWD"; then
+        exec "$(PATH="$WIN_PATH:$PATH" which git.exe)" "$@"
+    else
+        exec "$(xwhich git)" "$@"
+    fi
+}
+
+main "${0##*/}" "$@"
