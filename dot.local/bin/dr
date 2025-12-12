@@ -17,17 +17,22 @@ done
 wait $lsimages_pid || { echo >&2 "Failed to list docker images"; exit 1; }
 unset lsimages_pid lsimages
 
-if (( $# == 0 )); then
-    echo "images:"
-    for (( i=0; i<${#imgid[@]}; i++ )); do
-        id=${imgid[i]}
-        printf "%2d %s %s\n" $i "$id" "${img[$id]}"
-    done
-    exit 0
+if (( $# == 0 )) || [[ $1 = '-' ]]; then
+    (( ${#imgid[@]} > 0 )) || { echo >&2 "No docker images"; exit 1; }
+    image=$({
+        for (( i=0; i<${#imgid[@]}; i++ )); do
+            id=${imgid[i]}
+            printf "%2d %s %s\n" $i "$id" "${img[$id]}"
+        done \
+            | fzf --height 40% --tmux \
+            | awk '{print $3}'
+    })
+elif [[ $1 =~ ^[0-9]+$ && $1 -lt ${#imgid[@]} ]]; then
+    image=${imgid[$1]}
+else
+    image=$1
 fi
-
-[[ $1 =~ ^[0-9]+$ && $1 -lt ${#imgid[@]} ]] && image=${imgid[$1]} || image=$1
-shift
+shift || :
 
 unset imgid img
 
