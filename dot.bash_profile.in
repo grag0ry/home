@@ -3,6 +3,25 @@
 source "m4_CFG_HOME()/.config/bash/env.bash"
 source "m4_CFG_HOME()/.bashrc"
 
+cdf() {
+    local dironly=1; local hidden
+    local OPTIND; local o; while getopts "afHh" o; do case "$o" in
+        a) dironly=; hidden=1 ;;
+        f) dironly= ;;
+        H) hidden=1 ;;
+        h) printf "%s\n" "usage: cdf [-afH]" \
+                         "  -H    hidden" \
+                         "  -f    include files" \
+                         "  -a    all"
+           exit 0 ;;
+        ?) echo "usage: cdf [-afH]"; exit 1 ;;
+    esac; done; shift $((OPTIND - 1));
+    local wd;
+    wd=$(fd . "${1:-.}" ${hidden:+-H} ${dironly:+-t d} | fzf --height 40% --tmux)
+    [[ $wd = */ ]] || wd=$(dirname "$wd")
+    [[ -d "$wd" ]] && cd "$wd" || return 1
+}
+
 m4_ifdef(`m4_CFG_WSL', `source "m4_CFG_HOME()/.config/bash/wsl.profile.bash"')
 m4_ifdef(`m4_CFG_GNUPG_AGENT',`'
 if [[ -z $SSH_CONNECTION && -e /usr/bin/gpg-agent ]]; then
