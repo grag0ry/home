@@ -10,7 +10,7 @@ branches() {
             -e 's,^\s*remotes/[^/]\+/,,' \
             -e '/^HEAD/b' \
             -e p \
-        | sort
+        | sort -u
 }
 
 tags() { git tag | sed -e s,^,tags/, | sort -u; }
