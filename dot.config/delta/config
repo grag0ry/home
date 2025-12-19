@@ -1,0 +1,43 @@
+# Moonfly theme for delta
+# Upstream palette: github.com/bluz71/vim-moonfly-colors
+
+[delta]
+syntax-theme = Monokai Extended
+navigate = true
+dark = true
+line-numbers = true
+side-by-side = false
+hyperlinks = false
+keep-plus-minus-markers = false
+
+# UI colors
+file-style = "bold #80a0ff"
+file-decoration-style = "#2e2e2e"
+hunk-header-style = "bold #80a0ff"
+hunk-header-decoration-style = "#2e2e2e"
+
+# Diff colors
+minus-style = "#d183e8"
+minus-non-emph-style = "#d183e8"
+minus-emph-style = "bold #d183e8"
+
+plus-style = "#8ccf7e"
+plus-non-emph-style = "#8ccf7e"
+plus-emph-style = "bold #8ccf7e"
+
+# Line numbers
+line-numbers-left-style = "#ebcb8b"
+line-numbers-right-style = "#ebcb8b"
+line-numbers-minus-style = "#d183e8"
+line-numbers-plus-style = "#8ccf7e"
+
+# Code syntax (via bat)
+syntax-theme = "Monokai Extended"
+
+# Decorations
+decorations = true
+commit-decoration-style = "#80a0ff"
+commit-style = "bold #80a0ff"
+
+# Whitespace
+whitespace-error-style = "reverse #d183e8"

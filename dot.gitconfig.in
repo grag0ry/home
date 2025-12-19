@@ -4,12 +4,22 @@
 
 [color]
     ui = auto
+
 [alias]
     hist = log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short
     tree = log --graph --oneline --all
 
 [core]
     excludesFile = ~/.gitignore
+    pager = delta
+
+[interactive]
+    diffFilter = delta --color-only
+
+[merge]
+    conflictStyle = zdiff3
 
 [include]
-    path = ~/.gitconfig-private
+    path = "m4_CFG_HOME()/.gitconfig-private"
+    path = "m4_CFG_HOME()/.config/delta/config"
+

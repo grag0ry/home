@@ -10,6 +10,7 @@ endif
 $(call m4,dot.bash_profile)
 $(call m4,dot.bashrc)
 $(call m4,dot.tmux.conf)
+$(call m4,dot.gitconfig)
 
 $(call install,00644,dot.bashrc)
 $(call install,00644,dot.bash_profile)
