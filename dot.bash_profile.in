@@ -13,8 +13,8 @@ cdf() {
                          "  -H    hidden" \
                          "  -f    include files" \
                          "  -a    all"
-           exit 0 ;;
-        ?) echo "usage: cdf [-afH]"; exit 1 ;;
+           return 0 ;;
+        ?) echo "usage: cdf [-afH]"; return 1 ;;
     esac; done; shift $((OPTIND - 1));
     local wd;
     wd=$(fd . "${1:-.}" ${hidden:+-H} ${dironly:+-t d} | fzf --height 40% --tmux)

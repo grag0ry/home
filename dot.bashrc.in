@@ -6,6 +6,24 @@ if [[ $- != *i* ]] ; then
 fi
 
 alias tmux="tmux -2"
+
 if [[ -v NERDFONTS ]]; then
-    alias eza="eza --icons=always"
+    _eza="eza --icons=always"
+else
+    _eza="eza"
 fi
+
+alias ls="$_eza"
+alias ll="$_eza -l"
+alias la="$_eza -la"
+
+alias lt="$_eza -T"
+alias lt2="$_eza -T -L2"
+alias lt3="$_eza -T -L3"
+
+alias llg="$_eza -l --git"
+alias lag="$_eza -la --git"
+
+unset _eza
+
+
