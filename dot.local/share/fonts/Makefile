@@ -1,9 +1,7 @@
 include ../../../common.mk
 
 nerd-DejaVuSansMono.tar.xz:
-	$(TOOLS)github-assets.sh ryanoasis/nerd-fonts \
-		| grep "DejaVuSansMono\.tar\.xz" \
-		| xargs -r curl -s -L -o "$@"
+	$(call github-assets,ryanoasis/nerd-fonts,$@,DejaVuSansMono\.tar\.xz)
 
 .nerd-extracted: nerd-DejaVuSansMono.tar.xz
 	tar --wildcards -xvf "$<" '*.ttf'

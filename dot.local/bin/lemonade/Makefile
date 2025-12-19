@@ -8,9 +8,7 @@ clean:
 	$(RM) lemonade_linux_amd64.tar.gz lemonade
 
 lemonade_linux_amd64.tar.gz:
-	$(TOOLS)github-assets.sh lemonade-command/lemonade \
-		| grep lemonade_linux_amd64.tar.gz \
-		| xargs -r curl -s -L -o "$@"
+	$(call github-assets,lemonade-command/lemonade,$@,$@)
 
 lemonade: lemonade_linux_amd64.tar.gz
 	tar xzf lemonade_linux_amd64.tar.gz

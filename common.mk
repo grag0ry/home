@@ -69,18 +69,22 @@ install-receipt += $$(NL)ln -sf "$1" "$$(DESTDIR)$$(CFG_HOME)/$(dir $3)$2"
 endef
 
 define install-cmd-target =
-install-receipt += $$(NL)cd "$$(DESTDIR)$$(CFG_HOME)/" && $1
+install-receipt += $$(NL)$1
 endef
 
 install:
 	$(install-receipt)
 
-subdir = $(eval $(call subdir-target,$1))
+find = $(wildcard $1/$2) $(foreach d,$(wildcard $(1:=/*/)),$(call find,$(d:/=),$2))
+uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 m4 = $(eval $(call m4-target,$1,$2))
+wget = wget --progress=dot:giga "$1" -O "$2" --no-use-server-timestamps
+github-assets = $(TOOLS)github-assets.sh "$1" \
+	| grep -m1 "$(if $3,$3,.*)" \
+	| xargs -r -i $(call wget,{},$2)
+subdir = $(eval $(call subdir-target,$1))
 install-path = $(subst dot.,.,$(patsubst $(abspath $(PRJROOT))/%,%,$(abspath $1)))
 install = $(eval $(call install-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
 install-wildcard = $(eval $(call install-wildcard-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
 install-symlink = $(eval $(call install-symlink-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
 install-cmd=$(eval $(call install-cmd-target,$1))
-find = $(wildcard $1/$2) $(foreach d,$(wildcard $(1:=/*/)),$(call find,$(d:/=),$2))
-uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
