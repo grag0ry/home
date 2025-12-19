@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plist version="1.0">
+<dict>
+    <key>name</key>
+    <string>Moonfly</string>
+
+    <key>settings</key>
+    <array>
+
+        <!-- Global colors -->
+        <dict>
+            <key>settings</key>
+            <dict>
+                <key>background</key><string>#080808</string>
+                <key>foreground</key><string>#b2b2b2</string>
+                <key>caret</key><string>#80a0ff</string>
+                <key>invisibles</key><string>#2e2e2e</string>
+                <key>lineHighlight</key><string>#121212</string>
+                <key>selection</key><string>#2e2e2e</string>
+            </dict>
+        </dict>
+
+        <!-- Comments -->
+        <dict>
+            <key>scope</key><string>comment</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#5a5a5a</string>
+            </dict>
+        </dict>
+
+        <!-- Keywords -->
+        <dict>
+            <key>scope</key><string>keyword</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#d183e8</string>
+            </dict>
+        </dict>
+
+        <!-- Strings -->
+        <dict>
+            <key>scope</key><string>string</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#8ccf7e</string>
+            </dict>
+        </dict>
+
+        <!-- Numbers / constants -->
+        <dict>
+            <key>scope</key><string>constant.numeric, constant.language</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#e3c78a</string>
+            </dict>
+        </dict>
+
+        <!-- Functions -->
+        <dict>
+            <key>scope</key><string>entity.name.function</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#80a0ff</string>
+            </dict>
+        </dict>
+
+        <!-- Types -->
+        <dict>
+            <key>scope</key><string>storage.type, entity.name.type</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#79dac8</string>
+            </dict>
+        </dict>
+
+        <!-- Operators -->
+        <dict>
+            <key>scope</key><string>keyword.operator</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#f09479</string>
+            </dict>
+        </dict>
+
+        <!-- Variables -->
+        <dict>
+            <key>scope</key><string>variable</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#c6c6c6</string>
+            </dict>
+        </dict>
+
+        <!-- Punctuation -->
+        <dict>
+            <key>scope</key><string>punctuation</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#b2b2b2</string>
+            </dict>
+        </dict>
+
+    </array>
+</dict>
+</plist>

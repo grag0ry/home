@@ -2,7 +2,8 @@
 # Upstream palette: github.com/bluz71/vim-moonfly-colors
 
 [delta]
-syntax-theme = Monokai Extended
+syntax-theme = Moonfly
+syntax-highlight = true
 navigate = true
 dark = true
 line-numbers = true
