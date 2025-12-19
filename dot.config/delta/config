@@ -9,6 +9,7 @@ line-numbers = true
 side-by-side = false
 hyperlinks = false
 keep-plus-minus-markers = false
+features = "line-numbers decorations"
 
 # UI colors
 file-style = "bold #80a0ff"
