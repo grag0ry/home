@@ -27,4 +27,4 @@ alias lag="$_eza -la --git"
 
 unset _eza
 
-
+alias vf="vi \$(fzf)"

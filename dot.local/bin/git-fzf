@@ -15,5 +15,5 @@ branches() {
 
 tags() { git tag | sed -e s,^,tags/, | sort -u; }
 
-branch=$({ branches; tags; }| fzf --height 40% --tmux)
+branch=$({ branches; tags; }| fzf)
 exec git checkout "$branch"
