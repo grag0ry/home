@@ -1,8 +1,5 @@
 include ../../common.mk
 
-ifneq ($(CFG_LEMONADE),)
-$(call subdir,lemonade)
-endif
 ifneq ($(CFG_WSL),)
 $(call install,00755,wslsshagent)
 $(call install,00755,wslwrap)

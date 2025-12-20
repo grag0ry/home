@@ -31,6 +31,13 @@ if [[ -z "${CFG_X+defined}" ]]; then
     fi
 fi
 
+: "${CFG_APP_LEMONADE=$CFG_LEMONADE}"
+: "${CFG_APP_RIPGREP=1}"
+: "${CFG_APP_FD=1}"
+: "${CFG_APP_EZA=1}"
+: "${CFG_APP_BAT=1}"
+: "${CFG_APP_GIT_DELTA=1}"
+
 while IFS= read -r var; do
     if [[ -n ${!var:-} ]]; then
         printf "override %s = %s\n" "$var" "${!var}"
