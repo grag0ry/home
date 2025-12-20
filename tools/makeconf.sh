@@ -37,6 +37,7 @@ fi
 : "${CFG_APP_EZA=1}"
 : "${CFG_APP_BAT=1}"
 : "${CFG_APP_GIT_DELTA=1}"
+: "${CFG_APP_HEXYL=1}"
 
 while IFS= read -r var; do
     if [[ -n ${!var:-} ]]; then

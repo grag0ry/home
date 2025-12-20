@@ -23,7 +23,8 @@ APPS = \
 	 $(if $(CFG_APP_FD),fd-find) \
 	 $(if $(CFG_APP_EZA),eza) \
 	 $(if $(CFG_APP_BAT),bat) \
-	 $(if $(CFG_APP_GIT_DELTA),git-delta)
+	 $(if $(CFG_APP_GIT_DELTA),git-delta) \
+	 $(if $(CFG_APP_HEXYL),hexyl)
 
 ifneq ($(strip $(APPS)),)
 build: bin/cargo
@@ -34,6 +35,7 @@ $(if $(CFG_APP_FD),$(call install,00755,bin/fd,.local/bin/fd))
 $(if $(CFG_APP_EZA),$(call install,00755,bin/eza,.local/bin/eza))
 $(if $(CFG_APP_BAT),$(call install,00755,bin/bat,.local/bin/bat))
 $(if $(CFG_APP_GIT_DELTA),$(call install,00755,bin/delta,.local/bin/delta))
+$(if $(CFG_APP_HEXYL),$(call install,00755,bin/hexyl,.local/bin/hexyl))
 endif
 
 clean:
