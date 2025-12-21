@@ -9,9 +9,11 @@ CONFIG = $(PRJROOT)config.mk
 
 -include $(CONFIG)
 
+ifneq ($(wildcard config),config)
 .PHONY: config
 config:
 	$(TOOLS)makeconf.sh > "$(CONFIG)"
+endif
 
 $(foreach v,$(filter CFG_%, $(.VARIABLES)),$(eval config: export $v=$($v)))
 
