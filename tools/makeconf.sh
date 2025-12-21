@@ -16,8 +16,8 @@ fi
 : "${CFG_HOME:=$HOME}"
 CFG_HOME=$(realpath -m "$CFG_HOME")
 
-: "${CFG_WSL=$([[ $(uname -r) = *-microsoft-* ]] && echo 1 || echo)}"
-: "${CFG_NVIM=$([[ -n $(command -v nvim) ]] && echo 1 || echo)}"
+: "${CFG_WSL=$([[ $(uname -r) = *-microsoft-* ]] && echo 1 || :)}"
+: "${CFG_NVIM=$([[ -n $(command -v nvim) ]] && echo 1 || :)}"
 : "${CFG_GNUPG_AGENT=}"
 : "${CFG_LEMONADE=1}"
 : "${CFG_SET_NERDFONTS=}"
@@ -30,6 +30,8 @@ if [[ -z "${CFG_X+defined}" ]]; then
         fi
     fi
 fi
+
+: "${CFG_CARGO_NATIVE=$([[ -n $(command -v cargo) ]] && echo 1 || :)}"
 
 : "${CFG_APP_LEMONADE=$CFG_LEMONADE}"
 : "${CFG_APP_RIPGREP=1}"

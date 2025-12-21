@@ -26,6 +26,15 @@ endef
 
 M4=m4 -P $(foreach v,$(filter CFG_%, $(.VARIABLES)),$(if $($v),-D"m4_$(v)=$($(v))"))
 
+define fake-target =
+.PHONY: $1
+fake-$1 = .fake-$1
+$$(fake-$1):
+	$$(MAKE) -f $$(firstword $$(MAKEFILE_LIST)) $1
+	touch "$$@"
+
+endef
+
 define subdir-target =
 .PHONY: $1-build $1-install $1-clean
 $1-build:
@@ -82,6 +91,7 @@ wget = wget --progress=dot:giga "$1" -O "$2" --no-use-server-timestamps
 github-assets = $(TOOLS)github-assets.sh "$1" \
 	| grep -m1 "$(if $3,$3,.*)" \
 	| xargs -r -i $(call wget,{},$2)
+fake = $(eval $(call fake-target,$1))
 subdir = $(eval $(call subdir-target,$1))
 install-path = $(subst dot.,.,$(patsubst $(abspath $(PRJROOT))/%,%,$(abspath $1)))
 install = $(eval $(call install-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
