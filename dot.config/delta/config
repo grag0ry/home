@@ -2,7 +2,7 @@
 # Upstream palette: github.com/bluz71/vim-moonfly-colors
 
 [delta]
-syntax-theme = Moonfly
+syntax-theme = none
 syntax-highlight = true
 navigate = true
 dark = true
@@ -10,36 +10,63 @@ line-numbers = true
 side-by-side = false
 hyperlinks = false
 keep-plus-minus-markers = false
-features = "line-numbers decorations"
+decorations = true
 
-# UI colors
+# UI ELEMENTS
+
+# File headers
 file-style = "bold #80a0ff"
 file-decoration-style = "#2e2e2e"
-hunk-header-style = "bold #80a0ff"
+
+# Hunk headers
+hunk-header-style = "bold #cf87e8"
 hunk-header-decoration-style = "#2e2e2e"
 
-# Diff colors
-minus-style = "#d183e8"
-minus-non-emph-style = "#d183e8"
-minus-emph-style = "bold #d183e8"
+# Commit headers
+commit-style = "bold #79dac8"
+commit-decoration-style = "#2e2e2e"
 
-plus-style = "#8ccf7e"
-plus-non-emph-style = "#8ccf7e"
-plus-emph-style = "bold #8ccf7e"
+# DIFF COLORS (Moonfly-accurate)
 
-# Line numbers
-line-numbers-left-style = "#ebcb8b"
-line-numbers-right-style = "#ebcb8b"
-line-numbers-minus-style = "#d183e8"
-line-numbers-plus-style = "#8ccf7e"
+# Additions (DiffAdd = #314940)
+plus-style = "syntax #314940"
+plus-non-emph-style = "syntax #314940"
+plus-emph-style = "syntax #4d5d8d"
 
-# Code syntax (via bat)
-syntax-theme = "Monokai Extended"
+# Deletions (DiffDelete = #2e2e2e, fg=#626262)
+minus-style = "syntax #2e2e2e"
+minus-non-emph-style = "syntax #2e2e2e"
+minus-emph-style = "syntax #4d5d8d"
 
-# Decorations
+# Modified text (DiffText = #4d5d8d)
+# Used for inline diff emphasis
+emph-style = "bold #4d5d8d"
+
+# LINE NUMBERS
+
+line-numbers-left-style = "#626262"
+line-numbers-right-style = "#626262"
+
+line-numbers-minus-style = "#ff5d5d"
+line-numbers-plus-style = "#36c692"
+
+# SYNTAX COLORS (bat theme integration)
+syntax-theme = "Moonfly"
+
+# WHITESPACE
+
+# Highlight whitespace errors like Neovim's SpellBad
+whitespace-error-style = "reverse #ff5d5d"
+
+# Optional: highlight tabs/spaces in diffs
+whitespace-style = "underline #444444"
+
+# DECORATIONS
+
+# Vertical bars for side-by-side or inline decorations
 decorations = true
-commit-decoration-style = "#80a0ff"
-commit-style = "bold #80a0ff"
+decorations-style = "#444444"
 
-# Whitespace
-whitespace-error-style = "reverse #d183e8"
+# Box around changed blocks (optional)
+# Uncomment if you want a more "IDE-like" look
+# box-style = "#3a3a3a"

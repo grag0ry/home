@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Upstream palette: github.com/bluz71/vim-moonfly-colors -->
+
 <plist version="1.0">
 <dict>
     <key>name</key>
@@ -7,97 +10,150 @@
     <key>settings</key>
     <array>
 
-        <!-- Global colors -->
+        <!-- Global settings -->
         <dict>
             <key>settings</key>
             <dict>
                 <key>background</key><string>#080808</string>
-                <key>foreground</key><string>#b2b2b2</string>
-                <key>caret</key><string>#80a0ff</string>
-                <key>invisibles</key><string>#2e2e2e</string>
-                <key>lineHighlight</key><string>#121212</string>
-                <key>selection</key><string>#2e2e2e</string>
+                <key>foreground</key><string>#c6c6c6</string>
+                <key>caret</key><string>#c6c6c6</string>
+                <key>selection</key><string>#323437</string>
+                <key>lineHighlight</key><string>#1c1c1c</string>
+                <key>inactiveSelection</key><string>#262626</string>
+                <key>guide</key><string>#3a3a3a</string>
+                <key>activeGuide</key><string>#4e4e4e</string>
+                <key>stackGuide</key><string>#3a3a3a</string>
             </dict>
         </dict>
 
         <!-- Comments -->
         <dict>
-            <key>scope</key><string>comment</string>
+            <key>name</key><string>Comments</string>
+            <key>scope</key><string>comment, punctuation.definition.comment</string>
             <key>settings</key>
             <dict>
-                <key>foreground</key><string>#5a5a5a</string>
-            </dict>
-        </dict>
-
-        <!-- Keywords -->
-        <dict>
-            <key>scope</key><string>keyword</string>
-            <key>settings</key>
-            <dict>
-                <key>foreground</key><string>#d183e8</string>
+                <key>foreground</key><string>#949494</string>
+                <key>fontStyle</key><string>italic</string>
             </dict>
         </dict>
 
         <!-- Strings -->
         <dict>
-            <key>scope</key><string>string</string>
+            <key>name</key><string>Strings</string>
+            <key>scope</key><string>string, punctuation.definition.string</string>
             <key>settings</key>
             <dict>
-                <key>foreground</key><string>#8ccf7e</string>
+                <key>foreground</key><string>#c6c684</string>
             </dict>
         </dict>
 
-        <!-- Numbers / constants -->
+        <!-- String escape -->
         <dict>
-            <key>scope</key><string>constant.numeric, constant.language</string>
+            <key>name</key><string>String Escape</string>
+            <key>scope</key><string>constant.character.escape</string>
             <key>settings</key>
             <dict>
-                <key>foreground</key><string>#e3c78a</string>
+                <key>foreground</key><string>#ae81ff</string>
             </dict>
         </dict>
 
-        <!-- Functions -->
+        <!-- Regex -->
         <dict>
-            <key>scope</key><string>entity.name.function</string>
-            <key>settings</key>
-            <dict>
-                <key>foreground</key><string>#80a0ff</string>
-            </dict>
-        </dict>
-
-        <!-- Types -->
-        <dict>
-            <key>scope</key><string>storage.type, entity.name.type</string>
+            <key>name</key><string>Regex</string>
+            <key>scope</key><string>string.regexp</string>
             <key>settings</key>
             <dict>
                 <key>foreground</key><string>#79dac8</string>
             </dict>
         </dict>
 
+        <!-- Numbers -->
+        <dict>
+            <key>name</key><string>Numbers</string>
+            <key>scope</key><string>constant.numeric</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#de935f</string>
+            </dict>
+        </dict>
+
+        <!-- Boolean / language constants -->
+        <dict>
+            <key>name</key><string>Boolean</string>
+            <key>scope</key><string>constant.language</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#e65e72</string>
+            </dict>
+        </dict>
+
+        <!-- Keywords -->
+        <dict>
+            <key>name</key><string>Keywords</string>
+            <key>scope</key><string>keyword, keyword.control, keyword.other</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#cf87e8</string>
+            </dict>
+        </dict>
+
         <!-- Operators -->
         <dict>
+            <key>name</key><string>Operators</string>
             <key>scope</key><string>keyword.operator</string>
             <key>settings</key>
             <dict>
-                <key>foreground</key><string>#f09479</string>
+                <key>foreground</key><string>#e65e72</string>
+            </dict>
+        </dict>
+
+        <!-- Functions -->
+        <dict>
+            <key>name</key><string>Functions</string>
+            <key>scope</key><string>entity.name.function, support.function, meta.function-call</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#74b2ff</string>
+            </dict>
+        </dict>
+
+        <!-- Types -->
+        <dict>
+            <key>name</key><string>Types</string>
+            <key>scope</key><string>entity.name.type, support.type, storage.type</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#36c692</string>
+            </dict>
+        </dict>
+
+        <!-- Constants -->
+        <dict>
+            <key>name</key><string>Constants</string>
+            <key>scope</key><string>constant, constant.other</string>
+            <key>settings</key>
+            <dict>
+                <key>foreground</key><string>#79dac8</string>
             </dict>
         </dict>
 
         <!-- Variables -->
         <dict>
-            <key>scope</key><string>variable</string>
+            <key>name</key><string>Variables</string>
+            <key>scope</key><string>variable, variable.other, variable.parameter</string>
             <key>settings</key>
             <dict>
-                <key>foreground</key><string>#c6c6c6</string>
+                <key>foreground</key><string>#79dac8</string>
             </dict>
         </dict>
 
         <!-- Punctuation -->
         <dict>
-            <key>scope</key><string>punctuation</string>
+            <key>name</key><string>Punctuation</string>
+            <key>scope</key><string>punctuation, punctuation.separator, punctuation.definition</string>
             <key>settings</key>
             <dict>
-                <key>foreground</key><string>#b2b2b2</string>
+                <key>foreground</key><string>#c6c6c6</string>
             </dict>
         </dict>
 
