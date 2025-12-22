@@ -89,6 +89,10 @@ clean: $(IDXNAME)-clean
 $(IDXNAME)-clean:
 	rm -f "$(IDXNAME)"
 
+.PHONY: $(IDXNAME)-install
+$(IDXNAME)-install: $(IDXNAME)
+	$(if $(wildcard $(IDXNAME)),install -m 00644 -D -T "$(IDXNAME)" "$(DESTDIR)$(CFG_HOME)/$(IDXDIR)$(IDXNAME)")
+
 UNINSTDIR = .local/lib/home/uninstall/
 UNINSTCD = ../../../../
 UNINSTNAME = $(subst /,-,$(SUBDIR)uninstall.sh)
@@ -99,12 +103,12 @@ cd "$$(dirname "$$(realpath "$${BASH_SOURCE[0]}")")"/$(UNINSTCD) || exit 1
 while IFS= read -r file; do
 	rm -vf "$$file"
 	dir=$$(dirname "$$file")
-	[[ $$dir = [./] ]] || rmdir -pv --ignore-fail-on-non-empty "$$dir"
+	[[ $$dir = [./] ]] || rmdir -p --ignore-fail-on-non-empty "$$dir"
 done < "$(IDXDIR)$(IDXNAME)"
 rm -vf "$(IDXDIR)$(IDXNAME)"
-rmdir -pv --ignore-fail-on-non-empty "$(IDXDIR)"
+rmdir -p --ignore-fail-on-non-empty "$(IDXDIR)"
 rm -vf "$(UNINSTDIR)$(UNINSTNAME)"
-rmdir -pv --ignore-fail-on-non-empty "$(UNINSTDIR)"
+rmdir -p --ignore-fail-on-non-empty "$(UNINSTDIR)"
 endef
 
 $(UNINSTNAME):: $(IDXNAME)
@@ -115,6 +119,11 @@ $(UNINSTNAME):: $(IDXNAME)
 clean: $(UNINSTNAME)-clean
 $(UNINSTNAME)-clean:
 	rm -f "$(UNINSTNAME)"
+
+.PHONY: $(UNINSTNAME)-install
+$(UNINSTNAME)-install: $(UNINSTNAME)
+	$(if $(wildcard $(UNINSTNAME)),install -m 00755 -D -T "$(UNINSTNAME)" "$(DESTDIR)$(CFG_HOME)/$(UNINSTDIR)$(UNINSTNAME)")
+
 
 define install-target =
 install-receipt += $$(NL)install -m $1 -D -T "$2" "$$(DESTDIR)$$(CFG_HOME)/$3"
@@ -145,13 +154,10 @@ install-symlink = $(eval $(call install-symlink-target,$1,$2,$(if $3,$3,$(call i
 install-cmd=$(eval $(call install-cmd-target,$1))
 
 install: UNINSTALL=$(DESTDIR)$(CFG_HOME)/$(UNINSTDIR)$(UNINSTNAME)
-install: IDX=$(DESTDIR)$(CFG_HOME)/$(IDXDIR)$(IDXNAME)
 install:
-	$(MAKE) $(IDXNAME) $(UNINSTNAME)
 	$(if $(wildcard $(UNINSTALL)),$(UNINSTALL))
 	$(install-receipt)
-	$(if $(wildcard $(IDXNAME)),install -m 00644 -D -T "$(IDXNAME)" "$(IDX)")
-	$(if $(wildcard $(UNINSTNAME)),install -m 00755 -D -T "$(UNINSTNAME)" "$(UNINSTALL)")
+	$(MAKE) $(IDXNAME)-install $(UNINSTNAME)-install
 
 uninstall: UNINSTALL=$(DESTDIR)$(CFG_HOME)/$(UNINSTDIR)$(UNINSTNAME)
 uninstall:
