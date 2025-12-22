@@ -5,3 +5,7 @@ dot.tmux.conf
 dot.gitconfig
 
 idxfile
+*-idxfile
+uninstall.sh
+*-uninstall.sh
+
