@@ -3,3 +3,5 @@ dot.bash_profile
 dot.bashrc
 dot.tmux.conf
 dot.gitconfig
+
+idxfile

@@ -20,3 +20,16 @@ $(call install,00644,dot.tmux.conf)
 $(call install,00644,dot.gitconfig)
 $(call install,00644,dot.gitignore)
 
+.PHONY: uninstall
+uninstall:
+ifeq ($(wildcard $(idxfile-dir)),$(idxfile-dir))
+	cd $(DESTDIR)$(CFG_HOME) && while IFS= read -r file; do \
+		rm -vf "$$file"; dir=$$(dirname "$$file"); \
+		[[ $$dir != . && -d $$dir ]] \
+			&& rmdir -pv "$$dir" || : ; \
+	done < <( cat "$(idxfile-dir)"/* )
+	rm -rvf "$(idxfile-dir)"
+else
+	$(error Not installed)
+endif
+

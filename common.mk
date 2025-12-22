@@ -67,24 +67,25 @@ endef
 
 define install-target =
 install-receipt += $$(NL)install -m $1 -D -T "$2" "$$(DESTDIR)$$(CFG_HOME)/$3"
+install-index += $$(NL)printf "%s\n" "$3" >> $$@
 install: $2
+
 endef
 
 define install-wildcard-target =
 install-receipt += $$(NL)install -m $1 -D -t "$$(DESTDIR)$$(CFG_HOME)/$(dir $3)" $2
+install-index += $$(NL)printf "%s\n" $2 | awk -v p="$(dir $3)" '{print p $$$$0}' >> $$@
 install: build
 endef
 
 define install-symlink-target =
 install-receipt += $$(NL)ln -sf "$1" "$$(DESTDIR)$$(CFG_HOME)/$(dir $3)$2"
+install-index += $$(NL)printf "%s\n" "$(dir $3)$2" >> $$@
 endef
 
 define install-cmd-target =
 install-receipt += $$(NL)$1
 endef
-
-install:
-	$(install-receipt)
 
 find = $(wildcard $1/$2) $(foreach d,$(wildcard $(1:=/*/)),$(call find,$(d:/=),$2))
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
@@ -100,3 +101,22 @@ install = $(eval $(call install-target,$1,$2,$(if $3,$3,$(call install-path,$2))
 install-wildcard = $(eval $(call install-wildcard-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
 install-symlink = $(eval $(call install-symlink-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
 install-cmd=$(eval $(call install-cmd-target,$1))
+
+idxfile::
+	$(if $(install-index),: > "$@",)
+	$(install-index)
+
+idxfile-dir  = $(DESTDIR)$(CFG_HOME)/.local/lib/home/idx/
+idxfile-name = $(subst /,.,$(patsubst $(abspath $(PRJROOT))/%,%,$(abspath idxfile)))
+
+install: idxfile
+ifeq ($(wildcard idxfile),idxfile)
+	if [[ -f "$(idxfile-dir)$(idxfile-name)" ]]; then \
+		cd $(DESTDIR)$(CFG_HOME) && xargs -r rm -vf < "$(idxfile-dir)$(idxfile-name)"; \
+	fi
+endif
+	$(install-receipt)
+ifeq ($(wildcard idxfile),idxfile)
+	install -m 00644 -D -T $< "$(idxfile-dir)$(idxfile-name)"
+endif
+
