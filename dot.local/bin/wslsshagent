@@ -2,26 +2,95 @@
 
 set -e -u -o pipefail
 
-readonly SOCK=/tmp/wslsshagent/auth.sock
+readonly KEYCMT=wslsshagent
+readonly WSLHOST=wslsshagent
+: "${TMPDIR:=/tmp}"
+THIS_SCRIPT=$(realpath "${BASH_SOURCE[0]}"); readonly THIS_SCRIPT
 
-main() {
-    while getopts "s" a; do case "$a" in
-        s) server; return 0 ;;
-        *) return 1 ;;
-    esac; done
-    printf "export SSH_AUTH_SOCK=%q\n" "$SOCK"
-}
+SOCK=
+FOREGROUND=
+MODE=${WSLSSHAGENT_MODE:-agent}
 
-die() { printf >&2 "%s\n" "$@"; exit 127; }
+while getopts "a:Dks" opt; do case "$opt" in
+    a) SOCK="$OPTARG" ;;
+    D) FOREGROUND=1 ;;
+    k) MODE="kill" ;;
+    s) MODE="server" ;;
+    *) echo >&2 "usage $0: [-Dks] [-a socket path]"; exit 1 ;;
+esac; done
+
+die() { printf >&2 "%s: " "$0"; printf >&2 "%s\n" "$@"; exit 127; }
 ppid() { sed 's/.*) [[:alnum:]] \([0-9]\+\).*/\1/' /proc/$$/stat; }
+cmd() { cd /mnt/c && Windows/System32/cmd.exe /c "$*" | tr -d '\r'; }
 
-server() {
-    [[ -n "${SSH_AUTH_SOCK:-}" ]] || die "SSH_AUTH_SOCK is null"
-    install -m 00700 -d "$(dirname "$SOCK")"
-    ln -sf "${SSH_AUTH_SOCK}" "${SOCK}"
-    while [[ $(ppid) != 1 ]]; do
-        sleep 1m
-    done
-}
+case "$MODE" in
+    kill)
+        [[ -v SSH_AGENT_PID ]] || die "SSH_AGENT_PID not set"
+        kill -TERM "$SSH_AGENT_PID"
+    ;;
+    server)
+        [[ -n $SOCK ]] || die "no socket path"
+        [[ -n ${SSH_AUTH_SOCK:-} ]] || die "SSH_AUTH_SOCK not set"
+        install -m 00700 -D -d "$(dirname "$SOCK")"
+        ln -sf "$SSH_AUTH_SOCK" "$SOCK"
+        while [[ $(ppid) != 1 ]]; do sleep 1m; done
+    ;;
+    agent)
+        WSLSSHAGENT_KEY=$(awk -v key="$KEYCMT" '$NF == key { print $(NF-1) }' \
+            < ~/.ssh/authorized_keys)
+        [[ -n $WSLSSHAGENT_KEY ]] || die "public key not found"
+        export WSLSSHAGENT_KEY
 
-main "$@"
+        USERPROFILE=$(wslpath "$(cmd 'echo %USERPROFILE%')")
+        [[ -d "$USERPROFILE" ]] || die "%USERPROFILE% not found"
+
+        grep -q "\s*Host\s\+$WSLHOST\s*\$" 2>/dev/null "$USERPROFILE/.ssh/config" \
+            || die "configuration for $WSLHOST not found"
+
+        if [[ -n $FOREGROUND ]]; then
+            export WSLSSHAGENT_MODE=connect
+            exec "$BASH" "$THIS_SCRIPT" "$@"
+        else
+            SYNC=$(mktemp)
+            exec {WSLSSHAGENT_WAIT_FD}>"$SYNC"; export WSLSSHAGENT_WAIT_FD
+            exec {WSLSSHAGENT_SYNC_FD}>"$SYNC"; export WSLSSHAGENT_SYNC_FD
+            rm -f "$SYNC"
+            flock -x $WSLSSHAGENT_SYNC_FD
+            export WSLSSHAGENT_MODE=daemon
+            setsid "$BASH" "$THIS_SCRIPT" "$@" &
+            disown $!
+            exec {WSLSSHAGENT_SYNC_FD}>&-
+            exec flock -x $WSLSSHAGENT_WAIT_FD
+        fi
+    ;;
+    connect)
+        if [[ -z $SOCK ]]; then
+            SOCK=$(mktemp -d "$TMPDIR/wslsshagent-XXXXXX")
+            SOCK+=/agent.$BASHPID
+        fi
+        SSH=$(wslpath "$(cmd where ssh)")
+        SSH_ADD=$(wslpath "$(cmd where ssh-add)")
+        [[ -x $SSH ]] || die "ssh.exe not found"
+        [[ -x $SSH_ADD ]] || die "ssh-add.exe not found"
+
+        printf "SSH_AUTH_SOCK=%q; export SSH_AUTH_SOCK;\n" "$SOCK"
+        printf "SSH_AGENT_PID=%d; export SSH_AGENT_PID;\n" "$BASHPID"
+        printf "echo Agent pid %d;\n" "$BASHPID"
+        if [[ -z $FOREGROUND ]]; then
+            cd /
+            exec </dev/null >/dev/null 2>&1
+            [[ -v WSLSSHAGENT_SYNC_FD ]] && exec {WSLSSHAGENT_SYNC_FD}>&-
+        fi
+
+        while [[ $("$SSH_ADD" -L || :) != *" $WSLSSHAGENT_KEY "* ]]; do
+            sleep 5s
+        done
+        exec "$SSH" -T "$WSLHOST" -- /bin/bash "$THIS_SCRIPT" -s -a "$SOCK"
+    ;;
+    daemon)
+        [[ -v WSLSSHAGENT_WAIT_FD ]] && exec {WSLSSHAGENT_WAIT_FD}>&-
+        export WSLSSHAGENT_MODE=connect
+        "$BASH" "$THIS_SCRIPT" "$@" &
+        disown $!
+    ;;
+esac
