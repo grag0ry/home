@@ -20,6 +20,6 @@
     conflictStyle = zdiff3
 
 [include]
-    path = "m4_CFG_HOME()/.gitconfig-private"
-    path = "m4_CFG_HOME()/.config/delta/config"
+    path = "M4_CFG_HOME()/.gitconfig-private"
+    path = "M4_CFG_HOME()/.config/delta/config"
 

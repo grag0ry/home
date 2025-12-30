@@ -16,7 +16,7 @@ rectangle_select_modifiers ctrl+alt
 map ctrl+insert copy_to_clipboard
 map shift+insert paste_from_clipboard
 
-m4_ifdef(`m4_CFG_WSL', `open_url_with lemonade open')
+m4_ifdef(<[M4_CFG_WSL]>, <[open_url_with lemonade open]>)
 
 # Upstream: github.com/bluz71/vim-moonfly-colors
 #

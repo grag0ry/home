@@ -32,11 +32,26 @@ github-assets = $(TOOLS)github-assets.sh "$1" \
 	| grep -m1 "$(if $3,$3,.*)" \
 	| xargs -r -i $(call wget,{},$2)
 
-M4=m4 -P $(foreach v,$(filter CFG_%, $(.VARIABLES)),$(if $($v),-D"m4_$(v)=$($(v))"))
+M4CONFIG = $(PRJROOT)config.m4
+M4=m4 -P $(M4CONFIG)
+M4CONFIG_DATA=m4_divert(-1)
+M4CONFIG_DATA+=$(file < $(TOOLS)base.m4)
+M4CONFIG_DATA+=$(foreach v,$(filter CFG_%, $(.VARIABLES)),$(if $($v),$(NL)m4_define(<[M4_$v]>,<[$($v)]>)))
+M4CONFIG_DATA+=$(NL)m4_divert(0)m4_dnl
+$(M4CONFIG): $(CONFIG)
+	@echo "Writing $@"
+	$(file >$@,$(M4CONFIG_DATA))
+	sed -i -e 's/\s*$$//' "$@"
+
+.PHONY: $(M4CONFIG)-clean
+clean: $(M4CONFIG)-clean
+$(M4CONFIG)-clean:
+	$(RM) "$(M4CONFIG)"
+
 define m4-target =
 .PHONY: $1-clean
-$1: $1.in $$(CONFIG)
-	$$(M4) $$(M4ARGS) $2 "$1.in" > "$$@"
+$1: $1.in $$(M4CONFIG)
+	$$(M4) $2 "$1.in" > "$$@"
 
 $1-clean:
 	$$(RM) "$1"
