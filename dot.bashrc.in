@@ -1,8 +1,40 @@
+m4_ifdef(<[M4_CFG_WSL]>, <[source "M4_CFG_HOME()/.config/bash/wsl.bashrc"]>)
+
+if shopt -qo history; then
+    HISTTIMEFORMAT='%F %T '
+    HISTCONTROL="ignoredups"
+    HISTSIZE=5000
+    HISTFILESIZE=5000
+    HISTIGNORE="history:pwd"
+fi
+
 if [[ $- != *i* ]] ; then
     # Shell is non-interactive.  Be done now!
     return 0
 fi
 
+PROMPT_DIRTRIM=3
+
+cdf() {
+    local dironly=1; local hidden
+    local OPTIND; local o; while getopts "afHh" o; do case "$o" in
+        a) dironly=; hidden=1 ;;
+        f) dironly= ;;
+        H) hidden=1 ;;
+        h) printf "%s\n" "usage: cdf [-afH]" \
+                         "  -H    hidden" \
+                         "  -f    include files" \
+                         "  -a    all"
+           return 0 ;;
+        ?) echo "usage: cdf [-afH]"; return 1 ;;
+    esac; done; shift $((OPTIND - 1));
+    local wd;
+    wd=$(fd . "${1:-.}" ${hidden:+-H} ${dironly:+-t d} | fzf)
+    [[ $wd = */ ]] || wd=$(dirname "$wd")
+    [[ -d "$wd" ]] && cd "$wd" || return 1
+}
+
+alias vf="vi \$(fzf)"
 alias tmux="tmux -2"
 alias cat="bat"
 
@@ -24,7 +56,5 @@ alias llg="$_eza -l --git"
 alias lag="$_eza -la --git"
 
 unset _eza
-
-alias vf="vi \$(fzf)"
 
 # vim: filetype=bash

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+set -e -u -o pipefail
+
+O_EXPORT=
+O_RAW=
+CMDPATH=$(wslpath C:/Windows/System32/cmd.exe 2>/dev/null)
+
+[[ -n $CMDPATH ]] || exit 1
+cmd.exe() ( cd "$(dirname "$CMDPATH")" && "$CMDPATH" "$@" )
+xwslpath() { [[ -n $1 ]] && wslpath "$1" 2>/dev/null || return 0; }
+
+while getopts "er" opt; do case "$opt" in
+    e) O_EXPORT=1 ;;
+    r) O_RAW=1 ;;
+    *) exit 1 ;;
+esac; done
+
+declare -A WINENV
+while IFS= read -r line; do
+    [[ $line = *=* ]] || continue
+    var=${line%%=*}; var=${var@U}
+    val=${line#*=}; val=${val/%$'\r'/}
+    [[ -n $O_RAW ]] \
+        && printf "${O_EXPORT:+export }%q=%q\n" "$var" "$val" \
+        || WINENV[$var]=$val
+done < <(cmd.exe /D /C set)
+
+[[ -n $O_RAW ]] && exit 0
+
+WIN_PATH=
+while IFS= read -r -d ";" line; do
+    line=$(xwslpath "$line")
+    [[ -n $line ]] && WIN_PATH+="$line:"
+done <<< "${WINENV[PATH]:-}${WINENV[PATH]:+;}"
+[[ -n $WIN_PATH ]] && WIN_PATH=${WIN_PATH::-1}
+
+printf "${O_EXPORT:+export }%q=%q\n" \
+    WIN_PATH "$WIN_PATH" \
+    WIN_HOME "$(xwslpath "${WINENV[USERPROFILE]:-}")" \
+    WIN_TEMP "$(xwslpath "${WINENV[TEMP]:-}")" \
+    WIN_APPDATA "$(xwslpath "${WINENV[APPDATA]:-}")" \
+    WIN_PROGRAMDATA "$(xwslpath "${WINENV[PROGRAMDATA]:-}")" \
+    WIN_PROGRAMFILES "$(xwslpath "${WINENV[PROGRAMFILES]:-}")"

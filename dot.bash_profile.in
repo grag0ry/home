@@ -1,26 +1,7 @@
 source "M4_CFG_HOME()/.config/bash/env.bash"
+m4_ifdef(<[M4_CFG_WSL]>, <[source "M4_CFG_HOME()/.config/bash/wsl.profile.bash"]>)
 source "M4_CFG_HOME()/.bashrc"
 
-cdf() {
-    local dironly=1; local hidden
-    local OPTIND; local o; while getopts "afHh" o; do case "$o" in
-        a) dironly=; hidden=1 ;;
-        f) dironly= ;;
-        H) hidden=1 ;;
-        h) printf "%s\n" "usage: cdf [-afH]" \
-                         "  -H    hidden" \
-                         "  -f    include files" \
-                         "  -a    all"
-           return 0 ;;
-        ?) echo "usage: cdf [-afH]"; return 1 ;;
-    esac; done; shift $((OPTIND - 1));
-    local wd;
-    wd=$(fd . "${1:-.}" ${hidden:+-H} ${dironly:+-t d} | fzf)
-    [[ $wd = */ ]] || wd=$(dirname "$wd")
-    [[ -d "$wd" ]] && cd "$wd" || return 1
-}
-
-m4_ifdef(<[M4_CFG_WSL]>, <[source "M4_CFG_HOME()/.config/bash/wsl.profile.bash"]>)
 m4_ifdef(<[M4_CFG_GNUPG_AGENT]>,<[
 if [[ -z $SSH_CONNECTION && -e /usr/bin/gpg-agent ]]; then
     pgrep -u $USER gpg-agent > /dev/null || eval "$(/usr/bin/gpg-agent --daemon)"
