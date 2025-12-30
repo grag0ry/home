@@ -1,2 +1,2 @@
-# /etc/skel/.bash_logout
 clear
+# vim: filetype=bash

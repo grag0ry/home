@@ -64,3 +64,5 @@ if [[ -n ${SSH_TTY:-} ]]; then
     export PULSE_SERVER=unix:/mnt/wslg/PulseServer
 fi
 ]>)
+
+# vim: filetype=bash

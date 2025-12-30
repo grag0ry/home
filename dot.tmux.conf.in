@@ -67,3 +67,5 @@ m4_ifdef(<[M4_CFG_LEMONADE]>,<[
 set -s copy-command 'lemonade copy'
 set -s set-clipboard off
 ]>)
+
+# vim: filetype=tmux

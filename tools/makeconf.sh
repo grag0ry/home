@@ -13,14 +13,10 @@ else
     eval "$(sed -n s/^ID=/CFG_OSID=/p /etc/os-release)"
 fi
 
+: "${CFG_WSL=$([[ $(uname -r) = *-microsoft-* ]] && echo 1 || :)}"
+
 : "${CFG_HOME:=$HOME}"
 CFG_HOME=$(realpath -m "$CFG_HOME")
-
-: "${CFG_WSL=$([[ $(uname -r) = *-microsoft-* ]] && echo 1 || :)}"
-: "${CFG_NVIM=$([[ -n $(command -v nvim) ]] && echo 1 || :)}"
-: "${CFG_GNUPG_AGENT=}"
-: "${CFG_LEMONADE=1}"
-: "${CFG_SET_NERDFONTS=}"
 
 if [[ -z "${CFG_X+defined}" ]]; then
     CFG_X=
@@ -30,6 +26,12 @@ if [[ -z "${CFG_X+defined}" ]]; then
         fi
     fi
 fi
+
+
+: "${CFG_NVIM=$([[ -n $(command -v nvim) ]] && echo 1 || :)}"
+: "${CFG_GNUPG_AGENT=}"
+: "${CFG_LEMONADE=1}"
+: "${CFG_SET_NERDFONTS=}"
 
 : "${CFG_CARGO_NATIVE=$([[ -n $(command -v cargo) ]] && echo 1 || :)}"
 

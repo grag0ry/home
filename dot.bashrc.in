@@ -1,5 +1,3 @@
-# /etc/skel/.bash_profile
-
 if [[ $- != *i* ]] ; then
     # Shell is non-interactive.  Be done now!
     return 0
@@ -28,3 +26,5 @@ alias lag="$_eza -la --git"
 unset _eza
 
 alias vf="vi \$(fzf)"
+
+# vim: filetype=bash
