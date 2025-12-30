@@ -34,7 +34,25 @@ cdf() {
     [[ -d "$wd" ]] && cd "$wd" || return 1
 }
 
-alias vf="vi \$(fzf)"
+rgf() {
+    local rg='rg --column --line-number --no-heading --color=always --smart-case'
+    local OPTIND; local o; while getopts "zh" o; do case "$o" in
+        z) rg+=' --search-zip' ;;
+        h) printf "%s\n" "usage: rgf [-z]" \
+                         "  -z    rg --search-zip"
+           return 0 ;;
+        ?) echo "usage: rgf [-z]"; return 1 ;;
+    esac; done; shift $((OPTIND - 1));
+    : | rg="$rg" fzf --ansi --disabled --query "${*:-}" \
+        --bind 'start:reload:$rg {q}' \
+        --bind 'change:reload:sleep 0.1; $rg {q} || true' \
+        --delimiter : \
+        --preview 'bat --color=always {1} --highlight-line {2}' \
+        --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
+        --bind 'enter:become(vi {1} +{2})'
+}
+
+alias vif="vi \$(fzf)"
 alias tmux="tmux -2"
 alias cat="bat"
 
