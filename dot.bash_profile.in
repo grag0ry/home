@@ -1,13 +1,18 @@
 source "M4_CFG_HOME()/.config/bash/env.bash"
 m4_ifdef(<[M4_CFG_WSL]>, <[source "M4_CFG_HOME()/.config/bash/wsl.profile.bash"]>)
 source "M4_CFG_HOME()/.bashrc"
-
-m4_ifdef(<[M4_CFG_GNUPG_AGENT]>,<[
-if [[ -z $SSH_CONNECTION && -e /usr/bin/gpg-agent ]]; then
-    pgrep -u $USER gpg-agent > /dev/null || eval "$(/usr/bin/gpg-agent --daemon)"
-    export SSH_AUTH_SOCK=$(gpgconf --list-dirs agent-ssh-socket)
-    export GPG_TTY=$(tty)
+m4_dnl
+m4_define(<[M4_SSH_AGENT_CMD]>,m4_dnl
+m4_ifelse(M4_CFG_SSH_AGENT, <[openssh]>,
+          <[ssh-agent -D -a "$SSH_AUTH_SOCK"]>,
+          M4_CFG_SSH_AGENT, <[wslsshagent]>,
+          <[wslsshagent -D -a "$SSH_AUTH_SOCK"]>)m4_dnl
+)m4_dnl
+m4_ifelse(M4_SSH_AGENT_CMD, <[]>, <[]>,<[
+if [[ -z "$SSH_AUTH_SOCK" ]]; then
+    export SSH_AUTH_SOCK="M4_CFG_HOME()/.local/state/sshagent/agent.sock"
+    udm start --id ssh-agent -- M4_SSH_AGENT_CMD()
 fi
-]>) m4_dnl
+]>)m4_dnl
 
 # vim: filetype=bash

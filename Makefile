@@ -4,10 +4,6 @@ $(call subdir,dot.config)
 $(call subdir,dot.local)
 $(call subdir,apps)
 
-ifneq ($(CFG_GNUPG_AGENT),)
-$(call subdir,dot.gnupg)
-endif
-
 $(call m4,dot.bash_profile)
 $(call m4,dot.bashrc)
 $(call m4,dot.tmux.conf)

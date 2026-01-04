@@ -21,15 +21,17 @@ CFG_HOME=$(realpath -m "$CFG_HOME")
 if [[ -z "${CFG_X+defined}" ]]; then
     CFG_X=
     if [[ -n $CFG_WSL ]]; then
-        if ! grep -q guiApplications\\s*=\\s*false /etc/wsl.conf >/dev/null; then
+        if ! grep -q 'guiApplications\s*=\s*false' /etc/wsl.conf >/dev/null; then
             CFG_X=1
         fi
     fi
 fi
 
+if [[ -z "${CFG_SSH_AGENT+defined}" ]]; then
+    [[ -n $CFG_WSL ]] && CFG_SSH_AGENT=wslsshagent || CFG_SSH_AGENT=openssh
+fi
 
 : "${CFG_NVIM=$([[ -n $(command -v nvim) ]] && echo 1 || :)}"
-: "${CFG_GNUPG_AGENT=}"
 : "${CFG_LEMONADE=1}"
 : "${CFG_SET_NERDFONTS=}"
 

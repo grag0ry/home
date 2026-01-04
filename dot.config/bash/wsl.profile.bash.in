@@ -1,9 +1,5 @@
 eval "$(wslenv -e)"
 
-if [[ -z ${SSH_TTY:-} && -z ${SSH_AUTH_SOCK:-} ]]; then
-    eval "$(wslsshagent)"
-fi
-
 m4_ifdef(<[M4_CFG_X]>,<[
 if [[ -n ${SSH_TTY:-} ]]; then
     export XDG_RUNTIME_DIR=/mnt/wslg/runtime-dir
