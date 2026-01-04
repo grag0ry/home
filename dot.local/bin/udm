@@ -24,9 +24,9 @@ class PidFile:
         return os.path.join(RUNTIME_DIR, f"{id}.pid")
 
     @staticmethod
-    def open_exists(id: str) -> 'PidFile | None':
+    def open_exists(id: str, rw: bool) -> 'PidFile | None':
         try:
-            fd = os.open(PidFile.mkpath(id), os.O_RDONLY)
+            fd = os.open(PidFile.mkpath(id), os.O_RDWR if rw else os.O_RDONLY)
             return PidFile(fd)
         except FileNotFoundError:
             return None
@@ -138,7 +138,7 @@ def start(id: str, app: str, args: list[str]) -> int:
 
 
 def status(id: str) -> int:
-    pfh = PidFile.open_exists(id)
+    pfh = PidFile.open_exists(id, rw=False)
     if pfh is None:
         return -1
     with pfh:
@@ -166,7 +166,7 @@ def status_format(pid: int) -> str:
 
 
 def stop(id: str, kill: bool) -> None:
-    pfh = PidFile.open_exists(id)
+    pfh = PidFile.open_exists(id, rw=True)
     if pfh is None:
         return
     with pfh:
