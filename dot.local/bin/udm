@@ -1,0 +1,233 @@
+#!/usr/bin/env python3
+
+import argparse
+import fcntl
+import os
+import signal
+import sys
+from collections.abc import Iterator
+
+STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO = 0, 1, 2
+try:
+    HOME = os.environ["HOME"]
+except KeyError:
+    raise RuntimeError("HOME is required but not set")
+
+XDG_STATE = os.environ.get("XDG_STATE_HOME", f"{HOME}/.local/state")
+RUNTIME_DIR = os.path.join(XDG_STATE, "udm", "run")
+LOG_DIR = os.path.join(XDG_STATE, "udm", "log")
+
+
+class PidFile:
+    @staticmethod
+    def mkpath(id: str) -> str:
+        return os.path.join(RUNTIME_DIR, f"{id}.pid")
+
+    @staticmethod
+    def open_exists(id: str) -> 'PidFile | None':
+        try:
+            fd = os.open(PidFile.mkpath(id), os.O_RDONLY)
+            return PidFile(fd)
+        except FileNotFoundError:
+            return None
+
+    @staticmethod
+    def open_or_create(id: str, inheritable: bool) -> 'PidFile':
+        path = PidFile.mkpath(id)
+        try:
+            fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o644)
+        except FileNotFoundError:
+            os.makedirs(RUNTIME_DIR, 0o755, exist_ok=True)
+            fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o644)
+        os.set_inheritable(fd, inheritable)
+        return PidFile(fd)
+
+    def __init__(self, fd: int):
+        self.fd = fcntl.fcntl(fd, fcntl.F_DUPFD, 10)
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+        try:
+            fcntl.flock(self.fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            self.locked = True
+        except (BlockingIOError, OSError):
+            self.locked = False
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()
+        return False
+
+    def close(self):
+        if self.fd < 0:
+            return
+        fd, self.fd = self.fd, -1
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+
+    def read(self) -> int:
+        os.lseek(self.fd, 0, os.SEEK_SET)
+        data = os.read(self.fd, 32).decode().strip()
+        try:
+            return int(data)
+        except (ValueError, TypeError):
+            return 0
+
+    def write(self, pid: int) -> None:
+        os.ftruncate(self.fd, 0)
+        os.lseek(self.fd, 0, os.SEEK_SET)
+        os.write(self.fd, str(pid).encode())
+        os.fsync(self.fd)
+
+    def clear(self) -> None:
+        os.ftruncate(self.fd, 0)
+        os.lseek(self.fd, 0, os.SEEK_SET)
+        os.fsync(self.fd)
+
+
+def start(id: str, app: str, args: list[str]) -> int:
+    with PidFile.open_or_create(id, inheritable=True) as pfh:
+        if not pfh.locked:
+            return pfh.read()
+
+        (rfd, wfd) = os.pipe2(os.O_CLOEXEC)
+        if not os.fork():
+            os.close(rfd)
+            os.setsid()
+            if os.fork() > 0:
+                exit(0)
+            os.umask(0o022)
+            os.chdir(HOME)
+            pfh.write(os.getpid())
+            os.close(0)
+            if os.open(os.devnull, os.O_RDWR) != STDIN_FILENO:
+                exit(1)
+            os.close(1)
+            logpath = os.path.join(LOG_DIR, f"{id}.log")
+            try:
+                logfd = os.open(logpath, os.O_RDWR | os.O_CREAT, 0o644)
+            except FileNotFoundError:
+                os.makedirs(LOG_DIR, 0o755, exist_ok=True)
+                logfd = os.open(logpath, os.O_RDWR | os.O_CREAT, 0o644)
+            if logfd != STDOUT_FILENO:
+                exit(1)
+            if os.dup2(logfd, STDERR_FILENO) != STDERR_FILENO:
+                exit(1)
+            os.set_inheritable(STDIN_FILENO, True)
+            os.set_inheritable(STDOUT_FILENO, True)
+            os.set_inheritable(STDERR_FILENO, True)
+            try:
+                os.execvp(app, [app, *args])
+            except Exception as e:
+                os.write(wfd, f"exec failed: {type(e).__name__}: {e}\n".encode())
+                exit(1)
+        os.close(wfd)
+        while True:
+            data = os.read(rfd, 4096)
+            if not data:
+                break
+            os.write(STDERR_FILENO, data)
+        os.close(rfd)
+
+    return status(id)
+
+
+def status(id: str) -> int:
+    pfh = PidFile.open_exists(id)
+    if pfh is None:
+        return -1
+    with pfh:
+        return 0 if pfh.locked else pfh.read()
+
+
+def status_list() -> Iterator[tuple[str, int]]:
+    try:
+        with os.scandir(RUNTIME_DIR) as it:
+            for entry in it:
+                if entry.is_file() and entry.name.endswith(".pid"):
+                    id = entry.name[:-4]
+                    yield id, status(id)
+    except FileNotFoundError:
+        pass
+
+
+def status_format(pid: int) -> str:
+    if pid < 0:
+        return "not found"
+    elif pid == 0:
+        return "not running"
+    else:
+        return f"running (PID {pid})"
+
+
+def stop(id: str, kill: bool) -> None:
+    pfh = PidFile.open_exists(id)
+    if pfh is None:
+        return
+    with pfh:
+        if pfh.locked:
+            pfh.clear()
+            return
+        pid = pfh.read()
+        if not pid:
+            return
+        try:
+            os.kill(pid, signal.SIGKILL if kill else signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+
+
+def main():
+    parser = argparse.ArgumentParser(prog="udm")
+    sub = parser.add_subparsers(dest="cmd")
+
+    p_start = sub.add_parser("start")
+    p_start.add_argument("app")
+    p_start.add_argument("args", nargs="*")
+    p_start.add_argument("-i", "--id", required=False)
+
+    p_stop = sub.add_parser("stop")
+    p_stop.add_argument("id")
+    p_stop.add_argument("-k", "--kill", required=False, action='store_true')
+
+    p_status = sub.add_parser("status")
+    p_status.add_argument("id", nargs='?')
+
+    p_rm = sub.add_parser("rm")
+    p_rm.add_argument("id")
+
+    opts = parser.parse_args()
+    if opts.cmd == "start":
+        id = opts.id or os.path.basename(opts.app)
+        pid = start(id, opts.app, opts.args)
+        if pid > 0:
+            exit(0)
+        print(f"{id}: failed to start", file=sys.stderr)
+        exit(1)
+    elif opts.cmd == "stop":
+        stop(opts.id, opts.kill)
+    elif opts.cmd == "status":
+        if opts.id:
+            pid = status(opts.id)
+            print(f"{opts.id}: {status_format(pid)}")
+            exit(0 if pid > 0 else 1)
+        else:
+            for (id, pid) in status_list():
+                print(f"{id}: {status_format(pid)}")
+    elif opts.cmd == "rm":
+        stop(opts.id, kill=True)
+        try:
+            os.remove(PidFile.mkpath(opts.id))
+        except FileNotFoundError:
+            pass
+    else:
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
