@@ -2,6 +2,12 @@ source "M4_CFG_HOME()/.config/bash/env.bash"
 m4_ifdef(<[M4_CFG_WSL]>, <[source "M4_CFG_HOME()/.config/bash/wsl.profile.bash"]>)
 source "M4_CFG_HOME()/.bashrc"
 m4_dnl
+m4_ifdef(<[M4_CFG_LEMONADE_SERVER]>,<[
+m4_define(<[M4_LEMONADE_CMD]>,lemonade)m4_dnl
+m4_ifdef(<[M4_CFG_WSL]>,<[m4_define(<[M4_LEMONADE_CMD]>,lemonade.exe)]>)m4_dnl
+udm start --id lemonade -- M4_LEMONADE_CMD() server --allow "127.0.0.0/8,::1" --port=2489
+]>)m4_dnl
+m4_dnl
 m4_define(<[M4_SSH_AGENT_CMD]>,m4_dnl
 m4_ifelse(M4_CFG_SSH_AGENT, <[openssh]>,
           <[ssh-agent -D -a "$SSH_AUTH_SOCK"]>,
