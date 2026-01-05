@@ -43,13 +43,17 @@ rgf() {
            return 0 ;;
         ?) echo "usage: rgf [-z]"; return 1 ;;
     esac; done; shift $((OPTIND - 1));
-    : | rg="$rg" fzf --ansi --disabled --query "${*:-}" \
-        --bind 'start:reload:$rg {q}' \
-        --bind 'change:reload:sleep 0.1; $rg {q} || true' \
-        --delimiter : \
-        --preview 'bat --color=always {1} --highlight-line {2}' \
-        --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
-        --bind 'enter:become(vi {1} +{2})'
+    local query=${1:-}
+    local dir=${2:-.}
+    : | {
+        cd "$dir" && rg="$rg" fzf --ansi --disabled --query "$query" \
+            --bind 'start:reload:$rg {q}' \
+            --bind 'change:reload:sleep 0.1; $rg {q} || true' \
+            --delimiter : \
+            --preview 'bat --color=always {1} --highlight-line {2}' \
+            --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
+            --bind 'enter:become(vi {1} +{2})'
+    }
 }
 
 alias vif="vi \$(fzf)"
