@@ -27,6 +27,14 @@ if [[ -z "${CFG_X+defined}" ]]; then
     fi
 fi
 
+if [[ -n $CFG_WSL && -n $CFG_X ]]; then
+    : "${CFG_SET_GALLIUM_DRIVER=d3d12}"
+    : "${CFG_SET_MESA_D3D12_DEFAULT_ADAPTER_NAME=}"
+else
+    : "${CFG_SET_GALLIUM_DRIVER=}"
+    : "${CFG_SET_MESA_D3D12_DEFAULT_ADAPTER_NAME=}"
+fi
+
 if [[ -z "${CFG_SSH_AGENT+defined}" ]]; then
     [[ -n $CFG_WSL ]] && CFG_SSH_AGENT=wslsshagent || CFG_SSH_AGENT=openssh
 fi
@@ -37,6 +45,7 @@ fi
 
 : "${CFG_NVIM=$([[ -n $(command -v nvim) ]] && echo 1 || :)}"
 : "${CFG_SET_NERDFONTS=}"
+: "${CFG_SET_HIGHSCALE=}"
 
 : "${CFG_CARGO_NATIVE=$([[ -n $(command -v cargo) ]] && echo 1 || :)}"
 

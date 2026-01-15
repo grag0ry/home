@@ -1,4 +1,4 @@
-font_size 10
+font_size m4_ifdef(<[M4_CFG_SET_HIGHSCALE]>,<[18]>,<[10]>)
 # BEGIN_KITTY_FONTS
 font_family      family="DejaVuSansM Nerd Font Mono"
 bold_font        auto
@@ -10,6 +10,7 @@ cursor_shape block
 cursor_blink_interval 0
 shell_integration no-cursor
 enable_audio_bell no
+hide_window_decorations yes
 
 copy_on_select yes
 rectangle_select_modifiers ctrl+alt
