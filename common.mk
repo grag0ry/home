@@ -68,6 +68,11 @@ $$(fake-$1):
 	$$(MAKE) -f $$(firstword $$(MAKEFILE_LIST)) $1
 	touch "$$@"
 
+.PHONY: $1-clean
+clean: $1-clean
+$1-clean:
+	$$(RM) $$(fake-$1)
+
 endef
 fake = $(eval $(call fake-target,$1))
 
@@ -153,6 +158,13 @@ install-index += $$(NL)printf "%s\n" $2 | awk -v p="$(dir $3)" '{print p $$$$0}'
 install: build
 endef
 
+define install-dir-target =
+install-receipt += $$(NL)mkdir -vp "$$(DESTDIR)$$(CFG_HOME)/$2"
+install-receipt += $$(NL)cp -vrf "$1/." "$$(DESTDIR)$$(CFG_HOME)/$2"
+install-index += $$(NL)( cd "$1" && find . -not -type d -printf "$2/%p\n" | sed -e s,/./,/, ) >> $$@
+install: build
+endef
+
 define install-symlink-target =
 install-receipt += $$(NL)ln -sf "$1" "$$(DESTDIR)$$(CFG_HOME)/$(dir $3)$2"
 install-index += $$(NL)printf "%s\n" "$(dir $3)$2" >> $$@
@@ -164,6 +176,7 @@ endef
 
 install-path = $(INSDIR)$(subst dot.,.,$1)
 install = $(eval $(call install-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
+install-dir = $(eval $(call install-dir-target,$1,$(if $2,$2,$(call install-path,$1))))
 install-wildcard = $(eval $(call install-wildcard-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
 install-symlink = $(eval $(call install-symlink-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
 install-cmd=$(eval $(call install-cmd-target,$1))

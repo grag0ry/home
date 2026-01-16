@@ -10,4 +10,6 @@ idxfile
 *-idxfile
 uninstall.sh
 *-uninstall.sh
+*.tar.xz
+.fake-*
 
