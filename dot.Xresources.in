@@ -1,0 +1,4 @@
+# scale 1 ~ 96; scale 1.75 ~ 168
+m4_ifdef(<[M4_CFG_SET_HIGHSCALE]>,<[Xft.dpi: 168]>,<[# Xft.dpi: 96]>)
+
+# vim: filetype=xdefaults

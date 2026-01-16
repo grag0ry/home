@@ -4,6 +4,7 @@ dot.bash_profile
 dot.bashrc
 dot.tmux.conf
 dot.gitconfig
+dot.Xresources
 
 idxfile
 *-idxfile

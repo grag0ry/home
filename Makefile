@@ -16,3 +16,7 @@ $(call install,00644,dot.tmux.conf)
 $(call install,00644,dot.gitconfig)
 $(call install,00644,dot.gitignore)
 
+ifneq ($(CFG_X),)
+$(call m4,dot.Xresources)
+$(call install,00644,dot.Xresources)
+endif
