@@ -1,0 +1,6 @@
+[org/gnome/desktop/interface]
+cursor-size=40
+cursor-theme='Bibata-Original-Ice'
+m4_ifdef(<[M4_CFG_SET_HIGHSCALE]>,<[text-scaling-factor=1.75]>)
+
+# vim: filetype=dosini
