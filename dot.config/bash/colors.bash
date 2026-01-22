@@ -53,3 +53,6 @@ export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS \
   --color prompt:#80a0ff \
   --color spinner:#36c692
 "
+
+export NNN_FCOLORS='b4b46f72fbb474b0b0b0b0'
+export NNN_COLORS='#6f74b4f6'

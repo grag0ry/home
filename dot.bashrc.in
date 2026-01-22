@@ -79,4 +79,12 @@ alias lag="$_eza -la --git"
 
 unset _eza
 
+m4_ifdef(<[M4_CFG_NNN_INSTALL]>,<[
+if [[ -v NERDFONTS ]]; then
+    alias nnn=nnn-nerd-static
+else
+    alias nnn=nnn-static
+fi
+]>)
+
 # vim: filetype=bash

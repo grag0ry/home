@@ -49,6 +49,9 @@ fi
 
 : "${CFG_CARGO_NATIVE=$([[ -n $(command -v cargo) ]] && echo 1 || :)}"
 
+: "${CFG_NNN=1}"
+: "${CFG_NNN_INSTALL=${CFG_NNN}}"
+
 : "${CFG_APP_RIPGREP=1}"
 : "${CFG_APP_FD=1}"
 : "${CFG_APP_EZA=1}"
