@@ -15,26 +15,31 @@ fi
 
 PROMPT_DIRTRIM=3
 
-cdf() {
-    local dironly=1; local hidden
-    local OPTIND; local o; while getopts "afHh" o; do case "$o" in
-        a) dironly=; hidden=1 ;;
-        f) dironly= ;;
+f() {
+    local dironly=; local hidden=
+    local OPTIND; local o; while getopts "dHh" o; do case "$o" in
+        d) dironly=1 ;;
         H) hidden=1 ;;
-        h) printf "%s\n" "usage: cdf [-afH]" \
-                         "  -H    hidden" \
-                         "  -f    include files" \
-                         "  -a    all"
+        h) printf "%s\n" "usage: f [-dH]" \
+                         "  -d    dironly" \
+                         "  -H    hidden"
            return 0 ;;
-        ?) echo "usage: cdf [-afH]"; return 1 ;;
+        ?) echo "usage: f [-dH]"; return 1 ;;
     esac; done; shift $((OPTIND - 1));
-    local wd;
-    wd=$(fd . "${1:-.}" ${hidden:+-H} ${dironly:+-t d} | fzf)
-    [[ $wd = */ ]] || wd=$(dirname "$wd")
-    [[ -d "$wd" ]] && cd "$wd" || return 1
+    local r;
+    r=$(fd . "${1:-.}" ${hidden:+-H} ${dironly:+-t d} | fzf)
+    if [[ -z $r ]]; then
+        return 0
+    elif [[ $r != */ ]]; then
+        vi "$r"
+    elif [[ -n ${NNN_PIPE:-} ]]; then
+        printf "%s\0" "0c$(realpath "$r")" > "$NNN_PIPE"
+    else
+        cd "$r" || return 1
+    fi
 }
 
-rgf() {
+g() {
     local rg='rg --column --line-number --no-heading --color=always --smart-case'
     local OPTIND; local o; while getopts "zh" o; do case "$o" in
         z) rg+=' --search-zip' ;;
@@ -56,7 +61,18 @@ rgf() {
     }
 }
 
-alias vif="vi \$(fzf)"
+n() {
+    if [[ -n "${NNNLVL:-}" ]]; then
+        echo "nnn is already running"
+    elif [[ -v NNN_TMPFILE ]]; then
+        install -m 00600 -D -T /dev/null "$NNN_TMPFILE"
+        nnn "$@"
+        . "$NNN_TMPFILE"
+    else
+        nnn "$@"
+    fi
+}
+
 alias tmux="tmux -2"
 alias cat="bat"
 
