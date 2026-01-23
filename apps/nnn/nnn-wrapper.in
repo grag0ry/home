@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ -v NERDFONTS && -n ${NERDFONTS:-} ]]; then
+    nnn=nnn-nerd-static
+else
+    nnn=nnn-static
+fi
+
+exec "M4_CFG_HOME()/.local/bin/$nnn" "$@"
+
+# vim: filetype=bash
