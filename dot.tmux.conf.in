@@ -63,9 +63,7 @@ bind r source-file ~/.tmux.conf
 setenv -g SSH_AUTH_SOCK $SSH_AUTH_SOCK
 bind-key o send-keys 'eval "export $(tmux show-environment SSH_AUTH_SOCK)"' C-m
 
-m4_ifdef(<[M4_CFG_LEMONADE]>,<[
 set -s copy-command 'lemonade copy'
 set -s set-clipboard off
-]>)
 
 # vim: filetype=tmux

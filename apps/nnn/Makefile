@@ -14,5 +14,8 @@ nnn-nerd-static nnn-static: %: %.tar.gz
 .PHONY: build
 build: nnn-nerd-static nnn-static
 
+$(call m4,nnn-wrapper)
+
 $(call install,00755,nnn-nerd-static,.local/bin/nnn-nerd-static)
 $(call install,00755,nnn-static,.local/bin/nnn-static)
+$(call install,00755,nnn-wrapper,.local/bin/nnn)

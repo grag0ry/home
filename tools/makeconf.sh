@@ -39,8 +39,6 @@ if [[ -z "${CFG_SSH_AGENT+defined}" ]]; then
     [[ -n $CFG_WSL ]] && CFG_SSH_AGENT=wslsshagent || CFG_SSH_AGENT=openssh
 fi
 
-: "${CFG_LEMONADE=1}"
-: "${CFG_LEMONADE_INSTALL=$CFG_LEMONADE}"
 : "${CFG_LEMONADE_SERVER=}"
 
 : "${CFG_NVIM=$([[ -n $(command -v nvim) ]] && echo 1 || :)}"
@@ -48,9 +46,6 @@ fi
 : "${CFG_SET_HIGHSCALE=}"
 
 : "${CFG_CARGO_NATIVE=$([[ -n $(command -v cargo) ]] && echo 1 || :)}"
-
-: "${CFG_NNN=1}"
-: "${CFG_NNN_INSTALL=${CFG_NNN}}"
 
 : "${CFG_APP_RIPGREP=1}"
 : "${CFG_APP_FD=1}"
