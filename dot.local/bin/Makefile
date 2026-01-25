@@ -4,6 +4,7 @@ ifneq ($(CFG_WSL),)
 $(call install,00755,wslsshagent)
 $(call install,00755,wslwrap)
 $(call install,00755,wslenv)
+$(call install,00755,wslopen)
 $(call install-symlink,wslwrap,git)
 endif
 
