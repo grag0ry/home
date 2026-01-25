@@ -174,7 +174,7 @@ case "$(file --mime-type -b "$FILE")" in
     text/troff)
         exec man "$FILE"
     ;;
-    text/*)
+    text/*|application/json)
         exec "$EDITOR" "$FILE"
     ;;
     application/*-executable)
