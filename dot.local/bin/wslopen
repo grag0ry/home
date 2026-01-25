@@ -1,0 +1,19 @@
+#!/bin/bash
+
+file=${1:?wslopen: path required}
+
+if [[ $file =~ ^[a-zA-Z][a-zA-Z0-9+.-]*: ]]; then
+    if [[ ${BASH_REMATCH[0]} = file: ]]; then
+        file=${file/#file:\/\//}
+        file=file://$(wslpath -w "$file")
+    fi
+else
+    file=$(wslpath -w "$file")
+fi
+
+/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe \
+    -NoProfile \
+    -NoLogo \
+    -ExecutionPolicy Bypass \
+    -WindowStyle Hidden \
+    -Command "Start-Process explorer.exe -ArgumentList \"$file\""
