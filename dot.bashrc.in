@@ -26,17 +26,28 @@ f() {
            return 0 ;;
         ?) echo "usage: f [-dH]"; return 1 ;;
     esac; done; shift $((OPTIND - 1));
-    local r;
-    r=$(fd . "${1:-.}" ${hidden:+-H} ${dironly:+-t d} | fzf)
-    if [[ -z $r ]]; then
-        return 0
-    elif [[ $r != */ ]]; then
-        vi "$r"
-    elif [[ -n ${NNN_PIPE:-} ]]; then
-        printf "%s\0" "0c$(realpath "$r")" > "$NNN_PIPE"
-    else
-        cd "$r" || return 1
-    fi
+    local pat="${1:-.}"; local dir="${2:-.}"
+    local f=
+    while true; do
+        local bindcmd='printf "%s\n" "$1"; exit "$2"'
+        local r=0
+        f=$(fd "$pat" "$dir" ${hidden:+-H} ${dironly:+-t d} | bindcmd="$bindcmd" fzf \
+            --header "fd ${pat@Q} ${dir@Q}${hidden:+ -H}${dironly:+ -t d}" \
+            --query "$f" \
+            --bind 'ctrl-d:become(bash -c "$bindcmd" -- {q} 40)' \
+            --bind 'ctrl-h:become(bash -c "$bindcmd" -- {q} 41)' \
+        ) || r=$?
+        case $r in
+            0) break ;;
+            40) [[ -n $dironly ]] && dironly= || dironly=1 ;;
+            41) [[ -n $hidden ]] && hidden= || hidden=1 ;;
+            *) return $r ;;
+        esac
+    done
+    [[ -n $f ]] || return 1
+    [[ -d $f ]] || { xopen "$f"; return; }
+    [[ -n ${NNN_PIPE:-} ]] && printf "%s\0" "0c$(realpath "$f")" > "$NNN_PIPE"
+    cd "$f" || return 2
 }
 
 g() {
