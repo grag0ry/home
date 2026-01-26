@@ -4,6 +4,10 @@ if [[ $- != *i* ]] ; then
 fi
 
 [[ -v WIN_PATH ]] || eval "$(wslenv -e)"
+if [[ -n ${WSL_DISTRO_NAME} ]]; then
+    WSL_DISTRO_NAME=$(basename "$(wslpath -m /)")
+    export WSL_DISTRO_NAME
+fi
 
 cmdpath=$(wslpath C:/Windows/System32/cmd.exe 2>/dev/null)
 if [[ -n $cmdpath ]]; then
