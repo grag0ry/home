@@ -36,11 +36,15 @@ f() {
             --query "$f" \
             --bind 'ctrl-d:become(bash -c "$bindcmd" -- {q} 40)' \
             --bind 'ctrl-h:become(bash -c "$bindcmd" -- {q} 41)' \
+            --bind 'ctrl-j:become(bash -c "$bindcmd" -- {1} 42)' \
+            --bind 'ctrl-p:become(bash -c "$bindcmd" -- {1} 43)' \
         ) || r=$?
         case $r in
             0) break ;;
             40) [[ -n $dironly ]] && dironly= || dironly=1 ;;
             41) [[ -n $hidden ]] && hidden= || hidden=1 ;;
+            42) [[ -d $f ]] || f=$(dirname "$f"); break ;;
+            43) printf "%s\n" "$f"; return 0 ;;
             *) return $r ;;
         esac
     done
