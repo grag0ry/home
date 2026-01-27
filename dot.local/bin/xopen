@@ -2,185 +2,234 @@
 
 set -e -u -o pipefail
 
-readonly USAGE="usage: $0 [-tlxw]"
-TUI=a; GUI=a; WSL=a; LEM=a; ASK=
-while getopts "tTlLxXwWynh" o; do case "$o" in
+ASK=;
+readonly USAGE="usage: $0 [-tlxwa] [-f tui|wsl|gui|lem]"
+while getopts "tTlLxXwWahif:" o; do case "$o" in
     t) TUI=1 ;; T) TUI=  ;;
     l) LEM=1 ;; L) LEM=  ;;
     x) GUI=1 ;; X) GUI=  ;;
     w) WSL=1 ;; W) WSL=  ;;
-    y) ASK=y ;; n) ASK=n ;;
+    a) ASK=1 ;; f) FRC=$OPTARG ;;
     h) printf "%s\n" "$USAGE" \
                      "  -t/-T    force enable/disable TUI" \
                      "  -l/-L    force enable/disable lemonade open" \
                      "  -x/-X    force enable/disable GUI" \
                      "  -w/-W    force enable/disable WSL" \
-                     "  -y/-n    force answer yes/no" \
+                     "  -a       ask user" \
+                     "  -f       force specific opener" \
         ; return 0 ;;
     ?) echo "$USAGE"; return 1 ;;
 esac; done; shift $((OPTIND - 1));
-[[ $TUI = a ]] && { [[ -t 0 ]] && TUI=1 || TUI= ;}
+[[ -n ${TUI+d} ]] || { [[ -t 0 ]] && TUI=1 || TUI= ;}
+[[ -n ${GUI+d} ]] || { [[ -n ${DISPLAY:-} ]] && GUI=1 || GUI= ;}
+[[ -n ${WSL+d} ]] || { [[ -n ${WSL_INTEROP:-} ]] && WSL=1 || WSL= ;}
 [[ -n ${SSH_TTY:-} ]] && SSH=1 || SSH=
-[[ $GUI = a ]] && { [[ -n ${DISPLAY:-} ]] || GUI= ;}
-[[ $WSL = a ]] && { [[ -n ${WSL_INTEROP:-} ]] || WSL= ;}
-[[ $LEM = a ]] && { [[ -n $SSH ]] && LEM=1 || LEM= ;}
+[[ -n ${LEM+d} ]] || { [[ -n $SSH ]] && LEM=1 || LEM= ;}
 
-readonly TUI GUI WSL LEM SSH ASK
-readonly WSL_PS="/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
+if [[ -n $ASK && -z $TUI ]]; then
+    printf "%s\n" "$0: cannot ask user without tui" >&2
+    exit 1
+fi
+if [[ -n $ASK && -n $FRC ]]; then
+    printf "%s\n" "$0: cannot ask user and use force option" >&2
+    exit 1
+fi
 
-yesno() {
-    [[ $ASK = y ]] && return 0
-    [[ $ASK = n ]] && return 1
-    [[ -n $TUI ]] || return 1
-    local ans
-    read -r -p "$1 (y/n): " ans
-    case "${ans@L}" in
-        y|ye|yes) return 0 ;;
-        *) return 1 ;;
-    esac
-}
-
-xopen-fallback-wsl() {
-    if [[ $WSL = a && -n $SSH ]]; then
-        yesno "wslopen '$1'?" || return 101
+xopen() {
+    local file=$1; shift
+    if [[ $file =~ ^[a-zA-Z][a-zA-Z0-9+.-]*:(//)? ]]; then
+        if [[ ${BASH_REMATCH[0]} = file:// ]]; then
+            file=${file/#file:\/\//}
+        else
+            xopen-url "${BASH_REMATCH[0]}" "$file"
+        fi
     fi
-    setsid -f wslopen "$1" >/dev/null 2>&1 </dev/null
-    exit 0
-}
-
-xopen-fallback-gui() {
-    if [[ $GUI = a && -n $SSH ]]; then
-        yesno "xdg-open '$1'?" || return 101
+    local ext=${file##*.}
+    local exe=
+    if [[ -n $WSL ]]; then
+        case "$ext" in
+            exe) exe=exe ;;
+            bat) exe=bat ;;
+            ps1) exe=ps1 ;;
+        esac
     fi
-    setsid -f xdg-open "$1" >/dev/null 2>&1 </dev/null
-    exit 0
-}
-
-xopen-fallback() {
-    [[ -n $WSL ]] && xopen-fallback-wsl "$1"
-    [[ -n $GUI ]] && xopen-fallback-gui "$1"
-    exit 102
-}
-
-FILE=${1?$USAGE}
-
-if [[ $FILE =~ ^[a-zA-Z][a-zA-Z0-9+.-]*: ]]; then
-    if [[ ${BASH_REMATCH[0]} = file: && $FILE = file://* ]]; then
-        FILE=${FILE/#file:\/\//}
-    else
-        # Url processing
-        [[ -n $LEM ]] && exec timeout 2s lemonade open "$FILE"
-        xopen-fallback "$FILE"
+    if [[ -x $file && -f $file ]]; then
+        local magic
+        read -r -N4 magic <"$file"
+        case "$magic" in
+            $'\x7FELF') exe=elf ;;
+            '#!'*)      exe=shebang ;;
+        esac
     fi
-fi
+    [[ -n $exe ]] && xopen-run "$exe" "$file" "$@"
+    xopen-file "$ext" "$file"
+}
 
-[[ -n $TUI ]] || xopen-fallback "$FILE"
+xopen-url() {
+    [[ -n $FRC ]] && xopen-frc "$@"
+    [[ -n $ASK ]] && TUI="" xopen-ask "$@"
+    [[ -n $LEM ]] && xopen-lem "$@"
+    [[ -n $WSL ]] && xopen-wsl "$@"
+    [[ -n $GUI ]] && xopen-gui "$@"
+    exit 2
+}
 
-if [[ -d $FILE ]]; then
-    exec nnn "$FILE"
-fi
-
-EXT=${FILE##*.}
-EXT=${EXT@L}
-
-EXE=
-if [[ -n $WSL ]]; then
-    case "$EXT" in
-        exe) EXE=exe ;;
-        bat) EXE=bat ;;
-        ps1) EXE=ps1 ;;
-    esac
-fi
-if [[ -x $FILE ]]; then
-    case "$(head -c4 "$FILE")" in
-        $'\x7FELF') EXE=elf ;;
-        '#!'*)      EXE=shebang ;;
-    esac
-fi
-
-if [[ -n $EXE ]]; then
-    ACTIONS=(exec setsid)
-    [[ -n $WSL ]] && ACTIONS+=(wincmd)
-    [[ -n $GUI ]] && ACTIONS+=(kitty)
-    case "$EXE" in
+xopen-run() {
+    local exe=$1
+    local file=$2
+    shift 2
+    local opts=("run foreground" "nohup (run background)")
+    [[ -n $WSL ]] && opts+=("wincmd (windows terminal)")
+    [[ -n $GUI ]] && opts+=("kitty")
+    local -a cmd=(); local wincmd=
+    local -r ps="/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
+    case "$exe" in
         elf)
-            ACTIONS+=(objdump-f)
-            CMD=("$FILE")
-            WINCMD="wsl -d ${WSL_DISTRO_NAME} bash -lic ${FILE@Q}"
+            cmd=("$file" "$@")
+            wincmd="wsl -d ${WSL_DISTRO_NAME} bash -lic ${file@Q} -- ${*@Q}"
         ;;
         shebang)
-            ACTIONS+=(edit)
-            CMD=("$FILE")
-            WINCMD="wsl -d ${WSL_DISTRO_NAME} bash -lic ${FILE@Q}"
+            cmd=("$file" "$@")
+            wincmd="wsl -d ${WSL_DISTRO_NAME} bash -lic ${file@Q} -- ${*@Q}"
+            opts+=("edit in \$EDITOR")
         ;;
         exe)
-            ACTIONS+=(objdump-f)
-            CMD=("$FILE")
-            WINCMD=$(wslpath -w "$FILE")
+            cmd=("$file" "$@")
+            wincmd="$(wslpath -w "$file") ${*@Q}"
         ;;
         ps1)
-            ACTIONS+=(edit)
-            CMD=("$WSL_PS" -ExecutionPolicy Bypass "$(wslpath -w "$FILE")")
-            WINCMD=$(wslpath -w "$FILE")
+            cmd=("$ps" -ExecutionPolicy Bypass "$(wslpath -w "$file")" "$@")
+            wincmd="$(wslpath -w "$file") ${*@Q}"
+            opts+=("edit in \$EDITOR")
         ;;
         bat)
-            ACTIONS+=(edit)
-            DIR=$(dirname "$FILE")
-            [[ $(stat -c %T -f "${DIR:-}") = v9fs ]] \
-                && DIR="'$(wslpath -w "$DIR")'" \
-                || DIR="\$env:USERPROFILE"
-            CMD=("$WSL_PS" -ExecutionPolicy Bypass -Command "cd $DIR; & '$(wslpath -w "$FILE")'")
-            WINCMD="cd $DIR; $(wslpath -w "$FILE")"
+            local dir; dir=$(dirname "$file")
+            [[ $(stat -c %T -f "${dir:-}") = v9fs ]] \
+                && dir="'$(wslpath -w "$dir")'" \
+                || dir="\$env:USERPROFILE"
+            cmd=("$ps" -ExecutionPolicy Bypass -Command "cd $dir; & '$(wslpath -w "$file")' ${*@Q}")
+            wincmd="cd $dir; $(wslpath -w "$file") ${*@Q}"
+            opts+=("edit in \$EDITOR")
         ;;
     esac
-    ACTIONS+=(cancel)
-    select action in "${ACTIONS[@]}"; do case "$action" in
-        exec)
-            exec "${CMD[@]}"
+    opts+=("cancel")
+    local action=
+    ask-user action "Run '$file' ${*@Q}" "${opts[@]}"
+    case "$action" in
+        run)
+            exec "${cmd[@]}"
         ;;
-        setsid)
-            setsid -f "${CMD[@]}" >/dev/null 2>&1 </dev/null
+        nohup)
+            nohup "${cmd[@]}" >/dev/null 2>&1 &
+            disown $!
             exit 0
         ;;
         wincmd)
-            setsid -f "$WSL_PS" \
+            nohup "$ps" \
                 -NoProfile -NoLogo \
                 -ExecutionPolicy Bypass \
                 -WindowStyle Hidden \
-                -Command "Start-Process powershell.exe -ArgumentList \"-NoExit\",\"-Command\",\"$WINCMD\"" \
-                >/dev/null 2>&1 </dev/null
+                -Command "Start-Process powershell.exe -ArgumentList \"-NoExit\",\"-Command\",\"$wincmd\"" \
+                >/dev/null 2>&1 &
+            disown $!
             exit 0
         ;;
         kitty)
-            setsid -f kitty --hold -- "${CMD[@]}" >/dev/null 2>&1 </dev/null
+            nohup kitty --hold -- "${cmd[@]}" >/dev/null 2>&1 &
+            disown $!
             exit 0
         ;;
         edit)
-            exec "$EDITOR" "$FILE"
+            exec "$EDITOR" "$file"
         ;;
-        objdump-f)
-            objdump -f "$FILE" | "$PAGER"
-            exit 0
+        cancel)
+            exit 3
         ;;
-        cancel) exit 0 ;;
-        *) echo >&2 "Invalid choice" ;;
-    esac; done
-fi
+    esac
+    exit 2
+}
 
-case "$(file --mime-type -b "$FILE")" in
-    inode/directory)
-        exec nnn "$FILE"
-    ;;
-    text/troff)
-        exec man "$FILE"
-    ;;
-    text/*|application/json)
-        exec "$EDITOR" "$FILE"
-    ;;
-    application/*-executable)
-        objdump -f "$FILE" | "$PAGER"
-        exit 0
-    ;;
-esac
+xopen-file() {
+    local LEM=
+    [[ -n $FRC ]] && xopen-frc "$@"
+    [[ -n $ASK ]] && xopen-ask "$@"
+    [[ -n $TUI ]] && xopen-tui "$@"
+    [[ -n $WSL ]] && xopen-wsl "$@"
+    [[ -n $GUI ]] && xopen-gui "$@"
+    exit 2
+}
 
-xopen-fallback "$FILE"
+xopen-frc() {
+    case "$FRC" in
+        t|tui|term|terminal)       [[ -n $TUI ]] && xopen-tui "$@" ;;
+        w|win|wsl|wslopen|windows) [[ -n $WSL ]] && xopen-wsl "$@" ;;
+        x|gui|xdg-open)            [[ -n $GUI ]] && xopen-gui "$@" ;;
+        l|lem|lemonade)            [[ -n $LEM ]] && xopen-lem "$@" ;;
+        *)
+            printf "%s\n" "$0: invalid force option" >&2
+            exit 1
+        ;;
+    esac
+    exit 2
+}
+
+xopen-ask() {
+    local opts=(
+        ${TUI:+"tui"}
+        ${LEM:+"lem (lemonade open)"}
+        ${GUI:+"gui (xdg-open)"}
+        ${WSL:+"wsl (wslopen)"}
+        cancel
+    )
+    (( ${#opts[@]} > 1 )) || exit 2
+    local action=
+    ask-user action "How to open '$2'" "${opts[@]}"
+    case "$action" in
+        tui) xopen-tui "$@" ;;
+        lem) xopen-lem "$@" ;;
+        wsl) xopen-wsl "$@" ;;
+        gui) xopen-gui "$@" ;;
+        cancel) exit 3 ;;
+    esac
+    exit 2
+}
+
+xopen-lem() { lemonade open "$2"; exit $!; }
+xopen-wsl() { nohup wslopen "$2" >/dev/null 2>&1 & disown $!; exit 0; }
+xopen-gui() { nohup xdg-open "$2" >/dev/null 2>&1 & disown $!; exit 0; }
+
+xopen-tui() {
+    local ext=$1
+    local file=$2
+    case "$(file --mime-type -b "$file")" in
+        inode/directory)
+            if [[ -n ${NNN_PIPE:-} ]]; then
+                printf "%s\0" "0c$(realpath "$file")" > "$NNN_PIPE"
+                exit 0
+            else
+                exec nnn "$file"
+            fi
+        ;;
+        text/troff)
+            exec man "$file"
+        ;;
+        text/*|application/json)
+            exec "$EDITOR" "$file"
+        ;;
+    esac
+    [[ -n $ASK || -n $SSH || -n $FRC ]] && TUI='' xopen-ask "$@"
+    [[ -n $WSL ]] && xopen-wsl "$@"
+    [[ -n $GUI ]] && xopen-gui "$@"
+    exit 2
+}
+
+ask-user() {
+    local -n opt=$1; local q=$2; shift 2
+    printf "%s?\n" "$q"
+    select opt in "$@"; do
+        [[ -n $opt ]] && break || echo >&2 "Invalid choice"
+    done
+    opt=${opt%% *}
+}
+
+xopen "$@"
