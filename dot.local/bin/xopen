@@ -75,6 +75,7 @@ xopen-url() {
 }
 
 xopen-run() {
+    [[ -n $TUI ]] || exit 2
     local exe=$1
     local file=$2
     shift 2
