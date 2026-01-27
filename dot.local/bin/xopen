@@ -2,7 +2,7 @@
 
 set -e -u -o pipefail
 
-ASK=;
+ASK=; FRC=;
 readonly USAGE="usage: $0 [-tlxwa] [-f tui|wsl|gui|lem]"
 while getopts "tTlLxXwWahif:" o; do case "$o" in
     t) TUI=1 ;; T) TUI=  ;;
@@ -55,7 +55,7 @@ xopen() {
     fi
     if [[ -x $file && -f $file ]]; then
         local magic
-        read -r -N4 magic <"$file"
+        read -r -N4 magic <"$file" || :
         case "$magic" in
             $'\x7FELF') exe=elf ;;
             '#!'*)      exe=shebang ;;
