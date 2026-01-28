@@ -16,28 +16,33 @@ fi
 PROMPT_DIRTRIM=3
 
 f() {
-    local dironly=; local hidden=
-    local OPTIND; local o; while getopts "dHh" o; do case "$o" in
+    local dironly=; local hidden=; local noignore=
+    local OPTIND; local o; while getopts "dHIh" o; do case "$o" in
         d) dironly=1 ;;
         H) hidden=1 ;;
-        h) printf "%s\n" "usage: f [-dH]" \
+        I) noignore=1 ;;
+        h) printf "%s\n" "usage: f [-dHI]" \
                          "  -d    dironly" \
-                         "  -H    hidden"
+                         "  -H    hidden" \
+                         "  -I    no ignore" \
            return 0 ;;
-        ?) echo "usage: f [-dH]"; return 1 ;;
+        ?) echo "usage: f [-dHI]"; return 1 ;;
     esac; done; shift $((OPTIND - 1));
     local pat="${1:-.}"; local dir="${2:-.}"
     local f=
     while true; do
         local bindcmd='printf "%s\n" "$1"; exit "$2"'
+        local fdcmd=(fd "$pat" "$dir" ${hidden:+-H} ${noignore:+-I} ${dironly:+-t d})
         local r=0
-        f=$(fd "$pat" "$dir" ${hidden:+-H} ${dironly:+-t d} | bindcmd="$bindcmd" fzf \
-            --header "fd ${pat@Q} ${dir@Q}${hidden:+ -H}${dironly:+ -t d}" \
+        f=$("${fdcmd[@]}" | bindcmd="$bindcmd" fzf \
+            --header "${fdcmd[*]@Q}" \
+            --footer "ctrl+d(dironly)/h(hidden)/i(ignore)/j(hump)/p(print)" \
             --query "$f" \
             --bind 'ctrl-d:become(bash -c "$bindcmd" -- {q} 40)' \
             --bind 'ctrl-h:become(bash -c "$bindcmd" -- {q} 41)' \
             --bind 'ctrl-j:become(bash -c "$bindcmd" -- {1} 42)' \
             --bind 'ctrl-p:become(bash -c "$bindcmd" -- {1} 43)' \
+            --bind 'ctrl-i:become(bash -c "$bindcmd" -- {q} 44)' \
         ) || r=$?
         case $r in
             0) break ;;
@@ -45,6 +50,7 @@ f() {
             41) [[ -n $hidden ]] && hidden= || hidden=1 ;;
             42) [[ -d $f ]] || f=$(dirname "$f"); break ;;
             43) printf "%s\n" "$f"; return 0 ;;
+            44) [[ -n $noignore ]] && noignore= || noignore=1 ;;
             *) return $r ;;
         esac
     done

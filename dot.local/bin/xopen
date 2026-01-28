@@ -3,7 +3,7 @@
 set -e -u -o pipefail
 
 ASK=; FRC=;
-readonly USAGE="usage: $0 [-tlxwa] [-f tui|wsl|gui|lem]"
+readonly USAGE="usage: $0 [-tlxwa] [-f tui|wsl|gui|lem] file|url"
 while getopts "tTlLxXwWahif:" o; do case "$o" in
     t) TUI=1 ;; T) TUI=  ;;
     l) LEM=1 ;; L) LEM=  ;;
@@ -18,8 +18,9 @@ while getopts "tTlLxXwWahif:" o; do case "$o" in
                      "  -a       ask user" \
                      "  -f       force specific opener" \
         ; return 0 ;;
-    ?) echo "$USAGE"; return 1 ;;
+    ?) echo >&2 "$USAGE"; exit 1 ;;
 esac; done; shift $((OPTIND - 1));
+(( $# > 0 )) || { echo >&2 "$USAGE"; exit 1; }
 [[ -n ${TUI+d} ]] || { [[ -t 0 ]] && TUI=1 || TUI= ;}
 [[ -n ${GUI+d} ]] || { [[ -n ${DISPLAY:-} ]] && GUI=1 || GUI= ;}
 [[ -n ${WSL+d} ]] || { [[ -n ${WSL_INTEROP:-} ]] && WSL=1 || WSL= ;}
