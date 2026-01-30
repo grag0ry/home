@@ -50,7 +50,7 @@ xopen() {
     if [[ -n $WSL ]]; then
         case "$ext" in
             exe) exe=exe ;;
-            bat) exe=bat ;;
+            bat|cmd) exe=bat ;;
             ps1) exe=ps1 ;;
         esac
     fi
