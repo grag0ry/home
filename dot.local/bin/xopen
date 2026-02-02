@@ -218,6 +218,9 @@ xopen-tui() {
         text/*|application/json)
             exec "$EDITOR" "$file"
         ;;
+        image/avif|image/gif|image/jpeg|image/jxl|image/png|image/qoi|image/svg+xml|image/tiff|image/webp|image/x-xwindowdump)
+            exec imgview "$file"
+        ;;
     esac
     [[ -n $ASK || -n $SSH || -n $FRC ]] && TUI='' xopen-ask "$@"
     [[ -n $WSL ]] && xopen-wsl "$@"

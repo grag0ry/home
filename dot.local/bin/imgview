@@ -1,0 +1,99 @@
+#!/bin/bash
+
+set -e -u -o pipefail
+
+IMG_EXT=(
+    "avif" "gif" "jpg" "jpeg" "jpe" "jfif"
+    "jxl" "png" "qoi" "svg" "tif" "tiff"
+    "webp" "xwd"
+)
+
+main() {
+    (( $# > 0 )) || { echo >&2 "usage: $0 img_path"; exit 1; }
+    local img=$1
+    if [[ ! -t 0 ]]; then
+        img-show "$img"
+        basename "$img"
+        return 0
+    fi
+    altterm-init
+    local state="show"
+    local -a images=()
+    local idx=-1
+    while true; do case "$state" in
+        show)
+            img-show "$img" || :
+            (( idx >= 0 )) && printf "[%d/%d] " $(( idx+1 )) ${#images[@]}
+            basename "$img"
+            state="readkey"
+        ;;
+        readkey)
+            case "$(readkey)" in
+                q) break ;;
+                x) xopen -T "$img" ;;
+                $'\x1b\x5b\x44') state="img-prev" ;;
+                $'\x1b\x5b\x43') state="img-next" ;;
+            esac
+        ;;
+        img-next|img-prev)
+            if (( idx < 0 )); then
+                local lineno=0
+                local i; while IFS= read -r i; do
+                    (( lineno++ )) || :
+                    [[ $i == "$img" ]] && idx=$(( lineno - 1 ))
+                    images+=("$i")
+                done < <(fd -I -d 1 -t f "${IMG_EXT[@]/#/-e}" . "$(dirname "$img")")
+                (( idx < 0 )) && { images+=("$img"); idx=0; }
+            fi
+            if [[ $state = "img-next" ]]; then
+                (( idx = idx == ${#images[@]} - 1 ? 0 : idx + 1 )) || :
+            else
+                (( idx = idx == 0 ? ${#images[@]} - 1 : idx - 1 )) || :
+            fi
+            img=${images[idx]}
+            state="show"
+        ;;
+        *)
+            echo >&2 "Internal error: invalid state '$state'"
+            exit 1
+        ;;
+    esac; done
+}
+
+STTY_ORIG=
+altterm-init() {
+    STTY_ORIG=$(stty -g)
+    trap altterm-restore EXIT
+    tput smcup
+    tput civis
+    stty -echo -icanon time 0 min 0
+    clear
+}
+
+altterm-restore() {
+    [[ -n ${STTY_ORIG:-} ]] || return 0
+    stty "$STTY_ORIG"
+    tput cnorm
+    tput rmcup
+}
+
+readkey() {
+    local k=; local r=;
+    read -rsn1 k
+    if [[ $k == $'\x1b' ]]; then
+        while IFS= read -rsn1 -t 0.001 r; do
+            k+=$r
+        done
+    fi
+    printf '%s' "$k"
+}
+
+img-show() {
+    local lines;
+    lines=$(tput lines)
+    (( lines-=1 ))
+    clear
+    chafa --view-size "x$lines" -- "$1"
+}
+
+main "$@"
