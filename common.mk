@@ -1,7 +1,7 @@
 .PHONY: default
 default: build
 
-.PHONY: build install clean uninstall
+.PHONY: build install clean uninstall update
 
 PRJROOT = $(dir $(lastword $(MAKEFILE_LIST)))
 TOOLS = $(PRJROOT)tools/
@@ -77,7 +77,7 @@ endef
 fake = $(eval $(call fake-target,$1))
 
 define subdir-target =
-.PHONY: $1-build $1-install $1-clean $1-uninstall
+.PHONY: $1-build $1-install $1-clean $1-uninstall $1-update
 $1-build:
 	$$(MAKE) -C "$1" build
 
@@ -90,10 +90,14 @@ $1-uninstall:
 $1-clean:
 	$$(MAKE) -C "$1" clean
 
+$1-update:
+	$$(MAKE) -C "$1" update
+
 install: $1-install
 build: $1-build
 clean: $1-clean
 uninstall: $1-uninstall
+update: $1-update
 endef
 subdir = $(eval $(call subdir-target,$1))
 
@@ -191,3 +195,14 @@ uninstall: UNINSTALL=$(DESTDIR)$(CFG_HOME)/$(UNINSTDIR)$(UNINSTNAME)
 uninstall:
 	$(if $(wildcard $(UNINSTALL)),$(UNINSTALL))
 
+define update-simple-target =
+.PHONY: update-simple
+update-simple:
+	$$(MAKE) clean
+	$$(MAKE) build
+	$$(MAKE) install
+
+update: update-simple
+endef
+
+update-simple = $(eval $(call update-simple-target))

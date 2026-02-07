@@ -49,3 +49,8 @@ $(call app,CFG_APP_HEXYL,hexyl)
 
 clean:
 	find -maxdepth 1 -not -name .gitignore -not -name Makefile -not -name . -print0 | xargs -0r rm -rf
+
+update: cargo
+	cargo install $(cargo-apps)
+	$(MAKE) install
+

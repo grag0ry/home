@@ -15,3 +15,4 @@ clean:
 	$(RM) "nerd-DejaVuSansMono.tar.xz" ".nerd-extracted"
 	$(RM) *.ttf
 
+$(call update-simple)

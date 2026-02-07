@@ -15,3 +15,5 @@ fzf: fzf-linux_amd64.tar.gz
 build: fzf
 
 $(call install,00755,fzf)
+
+$(call update-simple)

@@ -15,3 +15,4 @@ clean:
 	$(RM) "Bibata-Original-Ice.tar.xz"
 	$(RM) -r Bibata-Original-Ice
 
+$(call update-simple)

@@ -30,3 +30,4 @@ $(call install,00755,lemonade.exe,.local/bin/lemonade.exe)
 endif
 endif
 
+$(call update-simple)
