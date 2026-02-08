@@ -84,7 +84,7 @@ $env:FZF_DEFAULT_OPTS = $env:FZF_DEFAULT_OPTS `
 
 $env:FZF_DEFAULT_OPTS = "$env:FZF_DEFAULT_OPTS --height 40%"
 $env:HOME = $env:USERPROFILE
-$env:RIPGREP_CONFIG_PATH = "$env:APPDATA\ripgrep\config"
+$env:RIPGREP_CONFIG_PATH = "$env:USERPROFILE\scoop\persist\ripgrep\config"
 
 # aliases
 
