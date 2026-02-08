@@ -17,15 +17,15 @@ Copy-ItemForceDirs "$ScriptDir/profile.ps1" $PROFILE.CurrentUserAllHosts
 Copy-ItemForceDirs "$ScriptDir/../dot.config/ripgrep/config" "$env:APPDATA\ripgrep\config"
 Copy-ItemForceDirs "$ScriptDir/../dot.config/bat/config" "$env:APPDATA\bat\config"
 Copy-ItemForceDirs "$ScriptDir/../dot.config/bat/themes/Moonfly.tmTheme" "$env:APPDATA\bat\themes\Moonfly.tmTheme"
-bat cache --build
 
 Copy-ItemForceDirs "$ScriptDir/../dot.config/delta/config" "$env:APPDATA\delta\config"
 
-if (-not(Get-Command scoop -ErrorAction SilentlyContinue)) {
-    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+if (-not(Test-Path $env:USERPROFILE\scoop\shims\scoop -PathType Leaf)) {
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
     Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
 }
 
-scoop update
-scoop install busybox curl git bat eza fd fzf ripgrep delta neovim
+& $env:USERPROFILE\scoop\shims\bat cache --build
+& $env:USERPROFILE\scoop\shims\scoop update
+& $env:USERPROFILE\scoop\shims\scoop install busybox curl git bat eza fd fzf ripgrep delta neovim
 
