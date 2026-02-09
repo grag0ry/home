@@ -1,6 +1,7 @@
 Import-Module PSReadLine
 
 Set-PSReadLineOption -EditMode Emacs
+Set-PSReadLineKeyHandler -Chord Ctrl+d -Function ViExit
 
 # TAB = bash-style complete
 Set-PSReadLineKeyHandler -Key Tab -Function Complete
