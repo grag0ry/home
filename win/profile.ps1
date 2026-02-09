@@ -10,19 +10,34 @@ Set-PSReadLineOption -ShowToolTips:$false
 Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 
-# PROMPT_DIRTRIM=3
 function prompt {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = New-Object Security.Principal.WindowsPrincipal($identity)
+    $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+    # PROMPT_DIRTRIM=3
     $max = 3
-    $cwd = (Get-Location).ProviderPath
-    $parts = $cwd -split '[\\/]' | Where-Object { $_ -ne "" }
+    $parts = @( (Get-Location).ProviderPath -split '[\\/]' | Where-Object { $_ -ne "" } )
     $root = $parts[0]
+    if (-not($root -match '^[A-Z]:$')) { $root = "\\" + $root }
+
     $rest = $parts[1..($parts.Count - 1)]
-    if ($rest.Count -gt $max) {
+    if ($parts.Count -eq 1) {
+        $short = ""
+    }
+    elseif ($rest.Count -gt $max) {
         $short = "...\" + ($rest[-$max..-1] -join '\')
     } else {
         $short = $rest -join '\'
     }
-    return "$root\$short> "
+
+    $E = [Char]0x1b
+    if ($isAdmin) {
+        return "$E[1;31m$env:COMPUTERNAME$E[1;34m $root\$short # $E[0m"
+    }
+    else {
+        return "$E[1;32m$env:USERNAME@$env:COMPUTERNAME$E[1;34m $root\$short > $E[0m"
+    }
 }
 
 # env - colors
@@ -92,6 +107,7 @@ if (Test-Path Alias:ls) { Remove-Item Alias:ls }
 if (Test-Path Alias:cat) { Remove-Item Alias:cat }
 
 Set-Alias cat bat
+Set-Alias vi nvim
 
 function ls  { eza --icons=always @args }
 function ll  { eza --icons=always -l @args }

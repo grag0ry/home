@@ -10,7 +10,7 @@
     tree = log --graph --oneline --all
 
 [core]
-    excludesFile = ~/.gitignore
+    excludesFile = "M4_CFG_HOME()/.gitignore"
     pager = delta
 
 [interactive]
@@ -21,6 +21,7 @@
 
 [include]
     path = "M4_CFG_HOME()/.gitconfig-private"
-    path = "M4_CFG_HOME()/.config/delta/config"
-
+    path = m4_ifelse(M4_CFG_WIN, <[1]>,
+                    <["M4_CFG_SCOOP_PERSIST()/delta/config"]>,
+                    <["M4_CFG_HOME()/.config/delta/config"]>)
 # vim: filetype=gitconfig
