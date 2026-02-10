@@ -104,6 +104,78 @@ $env:RIPGREP_CONFIG_PATH = "$env:USERPROFILE\scoop\persist\ripgrep\config"
 
 # aliases
 
+function xopen() {
+    param([string]$file)
+    $mime = file --mime-type -b $file
+    switch -Wildcard ($mime) {
+        'text/*' { nvim "$file" }
+        default { Start-Process explorer.exe -ArgumentList $file }
+    }
+}
+
+function f {
+    param([switch]$d, [switch]$H, [switch]$I, [switch]$help,
+          [Parameter(ValueFromRemainingArguments=$true)]
+          [string]$pat, [string]$dir)
+    if ($h) {
+        Write-Output @"
+usage: f [-dHI]
+  -d dironly
+  -H hidden
+  -I no ignore
+"@
+        return
+    }
+    $dironly = false; $hidden = false; $noignore = false
+    if ($d) { $dironly = $true }
+    if ($help) { $hidden = $true }
+    if ($I) { $noignore = $true }
+    $f = ""
+    if (-not($pat)) { $pat = "." }
+    if (-not($dir)) { $dir = "." }
+    while ($true) {
+        $bindcmd = 'Write-Host {0}; exit {1}'
+        $fdargs=@($pat, $dir)
+        if ($hidden) { $fdargs += "-H" }
+        if ($noignore) { $fdargs += "-I" }
+        if ($dironly) { $fdargs += @("-t", "d") }
+        $fzfargs=@(
+            "--header", "fd $($fdargs -Join " ")",
+            "--footer", "ctrl+d(dironly)/h(hidden)/i(ignore)/j(jump)/p(print)",
+            "--bind", "ctrl-d:become($($bindcmd -f "{q}","40"))",
+            "--bind", "ctrl-h:become($($bindcmd -f "{q}","41"))",
+            "--bind", "ctrl-j:become($($bindcmd -f "{1}","42"))",
+            "--bind", "ctrl-p:become($($bindcmd -f "{1}","43"))",
+            "--bind", "ctrl-i:become($($bindcmd -f "{q}","44"))",
+            "--with-shell", "powershell -NoProfile -Command"
+        )
+        if ($f) { $fzfargs+=@("--query", $f) }
+
+        $f = fd $fdargs | fzf $fzfargs
+        $r = $LASTEXITCODE
+        switch ($r) {
+            0 { break }
+            40 { $dironly = !$dironly }
+            41 { $hidden = !$hidden }
+            42 {
+                if (-not (Test-Path $f -PathType Container)) { $f = Split-Path $f -Parent }
+                $r = 0
+            }
+            43 { Write-Host $f; return 0 }
+            44 { $noignore = !$noignore }
+            default { return $r }
+        }
+        if ($r -eq 0) { break; }
+    }
+    if (-not($f)) { return 1 }
+    if (Test-Path $f -PathType Container) {
+        Set-Location $f
+    }
+    else {
+        xopen $f
+    }
+}
+
 if (Test-Path Alias:ls) { Remove-Item Alias:ls }
 if (Test-Path Alias:cat) { Remove-Item Alias:cat }
 

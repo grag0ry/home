@@ -36,7 +36,7 @@ f() {
         local r=0
         f=$("${fdcmd[@]}" | bindcmd="$bindcmd" fzf \
             --header "${fdcmd[*]@Q}" \
-            --footer "ctrl+d(dironly)/h(hidden)/i(ignore)/j(hump)/p(print)" \
+            --footer "ctrl+d(dironly)/h(hidden)/i(ignore)/j(jump)/p(print)" \
             --query "$f" \
             --bind 'ctrl-d:become(bash -c "$bindcmd" -- {q} 40)' \
             --bind 'ctrl-h:become(bash -c "$bindcmd" -- {q} 41)' \

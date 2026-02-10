@@ -79,7 +79,7 @@ if (-not(Test-Path $ScoopShims\scoop -PathType Leaf)) {
 }
 
 & $ScoopShims\scoop.ps1 update
-& $ScoopShims\scoop.ps1 install busybox m4 curl less git bat eza fd fzf ripgrep delta neovim
+& $ScoopShims\scoop.ps1 install busybox m4 curl less file git bat eza fd fzf ripgrep delta neovim
 
 Update-ScoopShim less less
 Update-ScoopShim xxd neovim
