@@ -176,6 +176,7 @@ usage: f [-dHI]
     }
 }
 
+if (Test-Path Alias:rm) { Remove-Item Alias:rm }
 if (Test-Path Alias:ls) { Remove-Item Alias:ls }
 if (Test-Path Alias:cat) { Remove-Item Alias:cat }
 

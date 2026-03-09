@@ -20,6 +20,13 @@ if [[ -n $cmdpath ]]; then
         # shellcheck disable=SC2139
         [[ -n $path ]] && alias "$name=${path@Q}"
     done
+    path=$(wslwhich pwsh.exe 2>/dev/null)
+    if [[ -n $path ]]; then
+        # shellcheck disable=SC2139
+        alias pwsh.exe="${path@Q}"
+        # shellcheck disable=SC2139
+        alias powershell="${path@Q}"
+    fi
     unset name
     unset path
 fi

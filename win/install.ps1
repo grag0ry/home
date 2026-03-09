@@ -79,7 +79,14 @@ if (-not(Test-Path $ScoopShims\scoop -PathType Leaf)) {
 }
 
 & $ScoopShims\scoop.ps1 update
-& $ScoopShims\scoop.ps1 install busybox m4 curl less file git bat eza fd fzf ripgrep delta neovim
+& $ScoopShims\scoop.ps1 install coreutils grep sed gawk m4 curl less file git bat eza fd fzf ripgrep delta neovim
+
+$pwsh = (Get-Command pwsh 2>$null)
+if ($null -eq $pwsh) {
+    & $ScoopShims\scoop.ps1 install pwsh;
+    $pwsh = (Get-Command pwsh)
+}
+$pwshProfile = & $pwsh.Source -NoLogo -NoProfile -Command '$PROFILE.CurrentUserAllHosts'
 
 Update-ScoopShim less less
 Update-ScoopShim xxd neovim
@@ -88,11 +95,23 @@ Write-Host "[MK] config.m4"
 Get-M4Config | Set-Content -Encoding ASCII -Path "$ScriptDir/config.m4" -Force
 
 Copy-ItemForceDirs "$ScriptDir\profile.ps1" $PROFILE.CurrentUserAllHosts
+Copy-ItemForceDirs "$ScriptDir\profile.ps1" $pwshProfile
 Copy-ItemForceDirs "$ScriptDir\..\dot.config\ripgrep\config" "$ScoopPersist\ripgrep\config"
 Copy-ItemForceDirs "$ScriptDir\..\dot.config\bat\config" "$ScoopPersist\bat\config"
 Copy-ItemForceDirs "$ScriptDir\..\dot.config\bat\themes\Moonfly.tmTheme" "$ScoopPersist\bat\themes\Moonfly.tmTheme"
 Copy-ItemForceDirs "$ScriptDir\..\dot.config\delta\config" "$ScoopPersist\delta\config"
 Copy-M4 "$ScriptDir\..\dot.gitconfig.in" "$env:USERPROFILE\.gitconfig"
 Copy-ItemForceDirs "$ScriptDir\..\dot.gitignore" "$env:USERPROFILE\.gitignore"
+
+Get-ChildItem "$env:LocalAppData\Microsoft\Windows\WinX" -Recurse -Filter "*.lnk" |
+    Where-Object { $_.Name -like "*PowerShell*" } |
+    ForEach-Object {
+        Write-Host "[LN] $($_.FullName) -> $($pwsh.Source)"
+        $ws = New-Object -ComObject WScript.Shell
+        $lnk = $ws.CreateShortcut($_.FullName)
+        $lnk.TargetPath = $pwsh.Source
+        $lnk.Arguments = ""
+        $lnk.Save()
+    }
 
 & $ScoopShims\bat cache --build
