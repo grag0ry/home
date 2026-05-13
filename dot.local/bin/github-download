@@ -14,15 +14,29 @@ _search_repo() {
         | awk '{print $1}'
 }
 
+_select_version() {
+    local repo=$1
+    curl -s "https://api.github.com/repos/$repo/releases?per_page=20" \
+        | jq -r '.[] | "\(.tag_name)\t\(.name)\t\(if .prerelease then "[pre]" else "" end)"' \
+        | column -t -s $'\t' \
+        | fzf --prompt="version> " --no-multi \
+        | awk '{print $1}'
+}
+
 repo=${1:-}
-version=${2:-latest}
+version=${2:-}
 
 if [[ -z $repo ]]; then
     repo=$(_search_repo) || exit 0
 fi
 [[ -n $repo ]] || exit 0
 
-url=$(github-assets "$repo" "$version" | fzf --prompt="$repo> " --no-multi) || exit 0
+if [[ -z $version ]]; then
+    version=$(_select_version "$repo") || exit 0
+fi
+[[ -n $version ]] || exit 0
+
+url=$(github-assets "$repo" "$version" | fzf --prompt="$repo $version> " --no-multi) || exit 0
 [[ -n $url ]] || exit 0
 
 file=$(basename "$url")
