@@ -8,6 +8,8 @@ $(call install,00755,wslopen)
 $(call install-symlink,wslwrap,git)
 endif
 
+$(call install,00755,github-assets)
+$(call install,00755,github-download)
 $(call install,00755,crc32)
 $(call install,00755,colors256-test)
 $(call install,00755,dr)

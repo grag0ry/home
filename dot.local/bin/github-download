@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e -u -o pipefail
+
+repo=${1:?usage: github-download <owner/repo> [version]}
+version=${2:-latest}
+
+url=$(github-assets "$repo" "$version" | fzf --prompt="$repo> " --no-multi) || exit 0
+[[ -n $url ]] || exit 0
+
+file=$(basename "$url")
+curl -L --progress-bar "$url" -o "$file"
