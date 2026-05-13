@@ -2,8 +2,25 @@
 
 set -e -u -o pipefail
 
-repo=${1:?usage: github-download <owner/repo> [version]}
+_search_repo() {
+    local query
+    read -r -p "Search GitHub: " query
+    [[ -n $query ]] || return 1
+
+    curl -s "https://api.github.com/search/repositories?q=${query// /+}&per_page=20" \
+        | jq -r '.items[] | "\(.full_name)\t★\(.stargazers_count)\t\(.description // "")"' \
+        | column -t -s $'\t' \
+        | fzf --prompt="repo> " --no-multi \
+        | awk '{print $1}'
+}
+
+repo=${1:-}
 version=${2:-latest}
+
+if [[ -z $repo ]]; then
+    repo=$(_search_repo) || exit 0
+fi
+[[ -n $repo ]] || exit 0
 
 url=$(github-assets "$repo" "$version" | fzf --prompt="$repo> " --no-multi) || exit 0
 [[ -n $url ]] || exit 0
