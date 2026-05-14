@@ -55,4 +55,4 @@ export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS \
 "
 
 export NNN_FCOLORS='b4b46f72fbb474b0b0b0b0'
-export NNN_COLORS='#6f74b4f6'
+export NNN_COLORS='#6f74b4f672b0d1cc'
