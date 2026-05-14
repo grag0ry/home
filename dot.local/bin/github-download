@@ -4,7 +4,11 @@ set -e -u -o pipefail
 
 _search_repo() {
     local query
-    read -r -p "Search GitHub: " query
+    if command -v gum &>/dev/null; then
+        query=$(gum input --placeholder "search..." --header "GitHub") || return 1
+    else
+        read -r -p "Search GitHub: " query
+    fi
     [[ -n $query ]] || return 1
 
     curl -s "https://api.github.com/search/repositories?q=${query// /+}&per_page=20" \

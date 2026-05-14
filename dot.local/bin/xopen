@@ -230,10 +230,14 @@ xopen-tui() {
 
 ask-user() {
     local -n opt=$1; local q=$2; shift 2
-    printf "%s?\n" "$q"
-    select opt in "$@"; do
-        [[ -n $opt ]] && break || echo >&2 "Invalid choice"
-    done
+    if command -v gum &>/dev/null; then
+        opt=$(gum choose --header "$q" "$@") || return 1
+    else
+        printf "%s?\n" "$q"
+        select opt in "$@"; do
+            [[ -n $opt ]] && break || echo >&2 "Invalid choice"
+        done
+    fi
     opt=${opt%% *}
 }
 
