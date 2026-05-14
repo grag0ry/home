@@ -1,0 +1,86 @@
+export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --height 40% --tmux"
+
+export NNN_DEV_RC="${BASH_SOURCE[0]}"
+export NNN_OPTS="AcEo"
+export NNN_TMPFILE="/tmp/nnn-lastd.$USER"
+export NNN_PLUG='f:!bash -ic ". $NNN_DEV_RC; f"*;g:-!bash -ic ". $NNN_DEV_RC; g"*'
+
+f() {
+    local dironly=; local hidden=; local noignore=
+    local OPTIND; local o; while getopts "dHIh" o; do case "$o" in
+        d) dironly=1 ;;
+        H) hidden=1 ;;
+        I) noignore=1 ;;
+        h) printf "%s\n" "usage: f [-dHI]" \
+                         "  -d    dironly" \
+                         "  -H    hidden" \
+                         "  -I    no ignore" \
+           return 0 ;;
+        ?) echo "usage: f [-dHI]"; return 1 ;;
+    esac; done; shift $((OPTIND - 1));
+    local pat="${1:-.}"; local dir="${2:-.}"
+    local f=
+    while true; do
+        local bindcmd='printf "%s\n" "$1"; exit "$2"'
+        local fdcmd=(fd "$pat" "$dir" ${hidden:+-H} ${noignore:+-I} ${dironly:+-t d})
+        local r=0
+        f=$("${fdcmd[@]}" | bindcmd="$bindcmd" fzf \
+            --header "${fdcmd[*]@Q}" \
+            --footer "ctrl+d(dironly)/h(hidden)/i(ignore)/j(jump)/p(print)" \
+            --query "$f" \
+            --bind 'ctrl-d:become(bash -c "$bindcmd" -- {q} 40)' \
+            --bind 'ctrl-h:become(bash -c "$bindcmd" -- {q} 41)' \
+            --bind 'ctrl-j:become(bash -c "$bindcmd" -- {1} 42)' \
+            --bind 'ctrl-p:become(bash -c "$bindcmd" -- {1} 43)' \
+            --bind 'ctrl-i:become(bash -c "$bindcmd" -- {q} 44)' \
+        ) || r=$?
+        case $r in
+            0) break ;;
+            40) [[ -n $dironly ]] && dironly= || dironly=1 ;;
+            41) [[ -n $hidden ]] && hidden= || hidden=1 ;;
+            42) [[ -d $f ]] || f=$(dirname "$f"); break ;;
+            43) printf "%s\n" "$f"; return 0 ;;
+            44) [[ -n $noignore ]] && noignore= || noignore=1 ;;
+            *) return $r ;;
+        esac
+    done
+    [[ -n $f ]] || return 1
+    [[ -d $f ]] && {
+        [[ -n ${NNN_PIPE:-} ]] && printf "%s\0" "0c$(realpath "$f")" > "$NNN_PIPE"
+        cd "$f" || return 2
+    }
+}
+
+g() {
+    local rg='rg --column --line-number --no-heading --color=always --smart-case'
+    local OPTIND; local o; while getopts "zh" o; do case "$o" in
+        z) rg+=' --search-zip' ;;
+        h) printf "%s\n" "usage: g [-z]" \
+                         "  -z    rg --search-zip"
+           return 0 ;;
+        ?) echo "usage: g [-z]"; return 1 ;;
+    esac; done; shift $((OPTIND - 1));
+    local query=${1:-}
+    local dir=${2:-.}
+    : | {
+        cd "$dir" && rg="$rg" fzf --ansi --disabled --query "$query" \
+            --bind 'start:reload:$rg {q}' \
+            --bind 'change:reload:sleep 0.1; $rg {q} || true' \
+            --delimiter : \
+            --preview 'bat --color=always {1} --highlight-line {2}' \
+            --preview-window 'up,60%,border-bottom,+{2}+3/3,~3' \
+            --bind 'enter:become(vi {1} +{2})'
+    }
+}
+
+n() {
+    if [[ -n "${NNNLVL:-}" ]]; then
+        echo "nnn is already running"
+    elif [[ -v NNN_TMPFILE ]]; then
+        install -m 00600 -D -T /dev/null "$NNN_TMPFILE"
+        nnn "$@"
+        . "$NNN_TMPFILE"
+    else
+        nnn "$@"
+    fi
+}

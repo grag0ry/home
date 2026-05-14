@@ -21,3 +21,7 @@ ifneq ($(CFG_X),)
 $(call m4,dot.Xresources)
 $(call install,00644,dot.Xresources)
 endif
+
+ifneq ($(CFG_DEV_RC),)
+$(call install,00644,dot.dev-rc,.dev-rc)
+endif
