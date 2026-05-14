@@ -1,3 +1,5 @@
+PS1='\[\e[01;33m\](dev)\[\e[00m\] \[\e[01;32m\]\u@\h\[\e[01;34m\] \w \$\[\e[00m\] '
+
 export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --height 40% --tmux"
 
 export NNN_DEV_RC="${BASH_SOURCE[0]}"
