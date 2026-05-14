@@ -79,7 +79,7 @@ if (-not(Test-Path $ScoopShims\scoop -PathType Leaf)) {
 }
 
 & $ScoopShims\scoop.ps1 update
-& $ScoopShims\scoop.ps1 install coreutils grep sed gawk m4 curl less file git bat eza fd fzf ripgrep delta neovim
+& $ScoopShims\scoop.ps1 install coreutils grep sed gawk m4 curl less file git bat eza fd fzf ripgrep delta neovim charm-gum
 
 $pwsh = (Get-Command pwsh 2>$null)
 if ($null -eq $pwsh) {

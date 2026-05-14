@@ -10,3 +10,6 @@ endif
 ifneq ($(CFG_APP_FZF),)
 $(call subdir,fzf)
 endif
+ifneq ($(CFG_APP_GUM),)
+$(call subdir,gum)
+endif
