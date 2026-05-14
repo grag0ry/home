@@ -16,3 +16,6 @@ endif
 ifneq ($(CFG_APP_JQ),)
 $(call subdir,jq)
 endif
+ifneq ($(CFG_APP_GLOW),)
+$(call subdir,glow)
+endif

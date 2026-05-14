@@ -59,6 +59,7 @@ fi
 : "${CFG_APP_NNN=1}"
 : "${CFG_APP_FZF=1}"
 : "${CFG_APP_GUM=1}"
+: "${CFG_APP_GLOW=1}"
 
 while IFS= read -r var; do
     if [[ -n ${!var:-} ]]; then
