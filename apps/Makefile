@@ -13,3 +13,6 @@ endif
 ifneq ($(CFG_APP_GUM),)
 $(call subdir,gum)
 endif
+ifneq ($(CFG_APP_JQ),)
+$(call subdir,jq)
+endif

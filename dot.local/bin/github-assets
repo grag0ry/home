@@ -11,5 +11,7 @@ else
     endpoint="releases/tags/$version"
 fi
 
+jq_bin=${JQ_BIN:-jq}
+
 curl -s "https://api.github.com/repos/$repo/$endpoint" \
-    | jq -r '.assets.[].browser_download_url'
+    | "$jq_bin" -r '.assets.[].browser_download_url'

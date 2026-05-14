@@ -28,7 +28,7 @@ endef
 find = $(wildcard $1/$2) $(foreach d,$(wildcard $(1:=/*/)),$(call find,$(d:/=),$2))
 uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 wget = wget --progress=dot:giga "$1" -O "$2" --no-use-server-timestamps
-github-assets = $(PRJROOT)dot.local/bin/github-assets "$1" \
+github-assets = $(if $(CFG_APP_JQ),JQ_BIN="$(CFG_HOME)/.local/bin/jq" )$(PRJROOT)dot.local/bin/github-assets "$1" \
 	| grep -m1 "$(if $3,$3,.*)" \
 	| xargs -r -i $(call wget,{},$2)
 

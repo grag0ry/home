@@ -53,6 +53,8 @@ fi
 : "${CFG_APP_GIT_DELTA=1}"
 : "${CFG_APP_HEXYL=1}"
 
+: "${CFG_APP_JQ=$([[ -z $(command -v jq) ]] && echo 1 || :)}"
+
 : "${CFG_APP_NNN=1}"
 : "${CFG_APP_FZF=1}"
 : "${CFG_APP_GUM=1}"
