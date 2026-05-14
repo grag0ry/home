@@ -2,6 +2,7 @@ include common.mk
 
 $(call subdir,dot.config)
 $(call subdir,dot.local)
+$(call subdir,dot.claude)
 $(call subdir,apps)
 
 $(call m4,dot.bash_profile)

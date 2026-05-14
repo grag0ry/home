@@ -1,0 +1,26 @@
+{
+  "name": "Moonfly",
+  "base": "dark",
+  "overrides": {
+    "claude":     "#80a0ff",
+    "suggestion": "#79dac8",
+    "permission": "#e3c78a",
+    "remember":   "#cf87e8",
+    "success":    "#8cc85f",
+    "error":      "#ff5d5d",
+    "warning":    "#e3c78a",
+    "merged":     "#36c692",
+    "promptBorder": "#80a0ff",
+    "bashBorder":   "#262626",
+    "planMode":  "#e3c78a",
+    "autoAccept": "#8cc85f",
+    "fastMode":   "#f09479",
+    "ide":        "#79dac8",
+    "diffAdded":     "#8cc85f",
+    "diffRemoved":   "#ff5d5d",
+    "diffAddedWord":   "#36c692",
+    "diffRemovedWord": "#ff5189",
+    "userMessageBackground":    "#121212",
+    "bashMessageBackgroundColor": "#121212"
+  }
+}
