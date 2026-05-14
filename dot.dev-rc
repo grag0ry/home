@@ -3,7 +3,7 @@ export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --height 40% --tmux"
 export NNN_DEV_RC="${BASH_SOURCE[0]}"
 export NNN_OPTS="AcEo"
 export NNN_TMPFILE="/tmp/nnn-lastd.$USER"
-export NNN_PLUG='f:!bash -ic ". $NNN_DEV_RC; f"*;g:-!bash -ic ". $NNN_DEV_RC; g"*'
+export NNN_PLUG='f:!bash -c ". $NNN_DEV_RC && f";g:-!bash -c ". $NNN_DEV_RC && g"'
 
 f() {
     local dironly=; local hidden=; local noignore=
@@ -45,10 +45,12 @@ f() {
         esac
     done
     [[ -n $f ]] || return 1
-    [[ -d $f ]] && {
+    if [[ -d $f ]]; then
         [[ -n ${NNN_PIPE:-} ]] && printf "%s\0" "0c$(realpath "$f")" > "$NNN_PIPE"
         cd "$f" || return 2
-    }
+    else
+        ${EDITOR:-vi} "$f"
+    fi
 }
 
 g() {
