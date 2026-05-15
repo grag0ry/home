@@ -1,4 +1,3 @@
 style: "~/.config/glow/moonfly.json"
-mouse: false
+mouse: true
 pager: false
-width: 80
