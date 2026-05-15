@@ -78,5 +78,7 @@ export GUM_WRITE_HEADER_FOREGROUND="#79dac8"
 export GUM_WRITE_PLACEHOLDER_FOREGROUND="#4e4e4e"
 export GUM_SPIN_SPINNER_FOREGROUND="#80a0ff"
 
+export GLAMOUR_STYLE="$HOME/.config/glow/moonfly.json"
+
 export NNN_FCOLORS='b4b46f72fbb474b0b0b0b0'
 export NNN_COLORS='#6f74b4f672b0d1cc'
