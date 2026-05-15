@@ -1,0 +1,3 @@
+style: "M4_CFG_HOME()/.config/glow/moonfly.json"
+mouse: true
+pager: false

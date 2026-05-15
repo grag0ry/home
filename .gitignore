@@ -5,6 +5,7 @@ dot.bashrc
 dot.tmux.conf
 dot.gitconfig
 dot.Xresources
+dot.config/glow/glow.yml
 
 idxfile
 *-idxfile
