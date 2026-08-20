@@ -27,6 +27,15 @@ _select_version() {
         | awk '{print $1}'
 }
 
+_resolve_tag() {
+    local repo=$1 version=$2
+    if [[ $version == latest ]]; then
+        curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name'
+    else
+        printf '%s\n' "$version"
+    fi
+}
+
 repo=${1:-}
 version=${2:-}
 
@@ -40,8 +49,19 @@ if [[ -z $version ]]; then
 fi
 [[ -n $version ]] || exit 0
 
-url=$(github-assets "$repo" "$version" | fzf --prompt="$repo $version> " --no-multi) || exit 0
-[[ -n $url ]] || exit 0
+tag=$(_resolve_tag "$repo" "$version")
 
-file=$(basename "$url")
-curl -L --progress-bar "$url" -o "$file"
+mapfile -t urls < <(
+    {
+        github-assets "$repo" "$version"
+        printf '%s\n' \
+            "https://github.com/$repo/archive/refs/tags/$tag.tar.gz" \
+            "https://github.com/$repo/archive/refs/tags/$tag.zip"
+    } | fzf --prompt="$repo $version> " -m
+)
+[[ ${#urls[@]} -gt 0 ]] || exit 0
+
+for url in "${urls[@]}"; do
+    file=$(basename "$url")
+    curl -L --progress-bar "$url" -o "$file"
+done
