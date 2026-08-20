@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -e -u -o pipefail
+
+readonly PWSH=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+
+usage() { echo >&2 "usage: ${0##*/} encrypt|decrypt"; exit 1; }
+
+crypt() {
+    local method=$1 ps_script out
+
+    ps_script='
+$ErrorActionPreference = "Stop"
+try {
+    Add-Type -AssemblyName System.Security
+    $b64 = [Console]::In.ReadToEnd()
+    $blob = [Convert]::FromBase64String($b64)
+    $out = [System.Security.Cryptography.ProtectedData]::'"$method"'($blob, $null, [System.Security.Cryptography.DataProtectionScope]::CurrentUser)
+    [Console]::Out.Write([Convert]::ToBase64String($out))
+} catch {
+    [Console]::Error.WriteLine($_.Exception.Message)
+    exit 1
+}
+'
+    out=$(base64 -w0 | "$PWSH" -NoProfile -NoLogo -ExecutionPolicy Bypass -Command "$ps_script")
+    printf '%s' "$out" | base64 -d
+}
+
+case "${1:-}" in
+    encrypt) crypt Protect ;;
+    decrypt) crypt Unprotect ;;
+    *) usage ;;
+esac
