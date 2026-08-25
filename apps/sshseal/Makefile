@@ -11,4 +11,9 @@ $(call install,00755,target/release/sshseal,.local/bin/sshseal)
 clean:
 	cargo clean
 
-$(call update-simple)
+.PHONY: update
+update: cargo
+	cargo update
+	$(MAKE) clean
+	$(MAKE) build
+	$(MAKE) install
