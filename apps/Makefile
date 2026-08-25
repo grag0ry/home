@@ -19,3 +19,6 @@ endif
 ifneq ($(CFG_APP_GLOW),)
 $(call subdir,glow)
 endif
+ifneq ($(CFG_APP_SSHSEAL),)
+$(call subdir,sshseal)
+endif

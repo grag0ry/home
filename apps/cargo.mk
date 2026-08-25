@@ -1,12 +1,12 @@
-# Assumes the including Makefile lives one level below apps/ (apps/<name>/Makefile),
-# so that ../cargo/ always resolves to the shared toolchain in apps/cargo/.
+# Assumes the including Makefile lives one level below apps/ (apps/<name>/Makefile).
+# Include AFTER ../../common.mk: it needs CFG_CARGO_NATIVE from config.mk.
 
 export CARGO_HOME := $(abspath ../cargo)
-export PATH := $(abspath ../cargo/bin):$(PATH)
 
 .PHONY: cargo
 
 ifeq ($(CFG_CARGO_NATIVE),)
+export PATH := $(abspath ../cargo/bin):$(PATH)
 export RUSTUP_HOME := $(abspath ../cargo/rustup)
 export RUSTUP_INIT_SKIP_PATH_CHECK = yes
 

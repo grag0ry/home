@@ -3,7 +3,7 @@ default: build
 
 .PHONY: build install clean uninstall update
 
-PRJROOT = $(dir $(lastword $(MAKEFILE_LIST)))
+PRJROOT := $(dir $(lastword $(MAKEFILE_LIST)))
 TOOLS = $(PRJROOT)tools/
 CONFIG = $(PRJROOT)config.mk
 SUBDIR = $(patsubst $(abspath $(PRJROOT))/%,%,$(abspath .)/)
