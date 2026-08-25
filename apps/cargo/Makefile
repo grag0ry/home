@@ -1,29 +1,5 @@
 include ../../common.mk
-
-export CARGO_HOME := $(abspath .)
-export PATH := $(abspath bin):$(PATH)
-
-.PHONY: cargo
-
-ifeq ($(CFG_CARGO_NATIVE),)
-export RUSTUP_HOME := $(abspath rustup)
-export RUSTUP_INIT_SKIP_PATH_CHECK = yes
-
-rustup-export = $(eval $(call rustup-export-impl,$1))
-
-rustup/rustup-init.sh:
-	mkdir -p rustup
-	$(call wget,https://sh.rustup.rs,$@)
-	chmod +x "$@"
-
-bin/rustup: rustup/rustup-init.sh
-	"$<" -y --no-modify-path --default-toolchain none
-
-bin/cargo: bin/rustup
-	bin/rustup toolchain install stable
-
-cargo: bin/cargo
-endif
+include ../cargo.mk
 
 $(call fake,cargo-apps)
 cargo-apps =
