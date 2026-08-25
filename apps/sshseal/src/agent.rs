@@ -16,12 +16,32 @@ pub struct Identity {
 }
 
 impl Identity {
+    pub fn fingerprint_digest(&self) -> [u8; 32] {
+        Sha256::digest(&self.key_blob).into()
+    }
+
     pub fn fingerprint(&self) -> String {
-        let digest = Sha256::digest(&self.key_blob);
         format!(
             "SHA256:{}",
-            base64::engine::general_purpose::STANDARD_NO_PAD.encode(digest)
+            base64::engine::general_purpose::STANDARD_NO_PAD.encode(self.fingerprint_digest())
         )
+    }
+
+    /// The key's algorithm name (e.g. "ssh-ed25519", "ssh-rsa"), read from the
+    /// wire-format key blob's first field.
+    pub fn algorithm(&self) -> &str {
+        Reader::new(&self.key_blob)
+            .string()
+            .ok()
+            .and_then(|s| std::str::from_utf8(s).ok())
+            .unwrap_or("")
+    }
+
+    /// sshseal only works with ed25519 keys: agent signatures over the same
+    /// message must be reproducible, and only EdDSA guarantees that (RSA/ECDSA
+    /// signatures here are randomized).
+    pub fn is_ed25519(&self) -> bool {
+        self.algorithm() == "ssh-ed25519"
     }
 }
 
@@ -37,9 +57,14 @@ impl Client {
     }
 
     pub fn connect_to(path: impl AsRef<std::path::Path>) -> io::Result<Self> {
-        Ok(Self {
-            stream: UnixStream::connect(path)?,
-        })
+        let path = path.as_ref();
+        let stream = UnixStream::connect(path).map_err(|e| {
+            io::Error::new(
+                e.kind(),
+                format!("can't connect to ssh-agent at {} ({e}) - is SSH_AUTH_SOCK stale?", path.display()),
+            )
+        })?;
+        Ok(Self { stream })
     }
 
     pub fn list_identities(&mut self) -> io::Result<Vec<Identity>> {
