@@ -113,10 +113,13 @@ fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     let result = match args.next().as_deref() {
         Some("identities") => cmd_identities(),
-        Some("encrypt") => parse_identity_flag(args).and_then(|id| cmd_encrypt(id.as_deref())),
+        Some("encrypt") => parse_identity_flag(args)
+            .map(|id| id.or_else(|| std::env::var("SSHSEAL_IDENTITY").ok()))
+            .and_then(|id| cmd_encrypt(id.as_deref())),
         Some("decrypt") => cmd_decrypt(),
         _ => {
             eprintln!("usage: sshseal encrypt [--identity <fingerprint>] | decrypt | identities");
+            eprintln!("       --identity defaults to $SSHSEAL_IDENTITY if set");
             return ExitCode::FAILURE;
         }
     };
