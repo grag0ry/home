@@ -1,0 +1,65 @@
+#!/bin/bash
+
+set -e -u -o pipefail
+
+SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/github/token.enc"
+CRED_HELPER="!$SCRIPT_DIR/github-credential-helper"
+
+die()  { gum log --level error "$*"; exit 1; }
+warn() { gum log --level warn "$*"; }
+
+auth-token-check() {
+    local token=$1
+    [[ -n $token ]] || return 1
+    printf 'header = "Authorization: Bearer %s"\n' "$token" \
+        | curl -fs --config - https://api.github.com/user >/dev/null 2>&1
+}
+
+auth() {
+    command -v sshseal >/dev/null 2>&1 || die "sshseal not found"
+
+    if [[ -f "$CACHE" ]]; then
+        local token
+        if token=$(sshseal decrypt < "$CACHE" 2>/dev/null); then
+            if auth-token-check "$token"; then
+                return 0
+            fi
+            rm -f "$CACHE"
+        else
+            warn "failed to decrypt cached token (ssh key not loaded?)"
+        fi
+    fi
+
+    [[ -t 0 ]] || die "authentication required"
+
+    local token
+    while true; do
+        token=$(gum input --password --prompt "GitHub PAT: ")
+        auth-token-check "$token" && break
+        warn "token invalid, try again"
+    done
+
+    mkdir -p "$(dirname "$CACHE")"
+    (umask 077; printf '%s' "$token" | sshseal encrypt > "$CACHE") \
+        || die "failed to cache token"
+}
+
+main() {
+    auth
+
+    if (( $# == 0 )); then
+        printf 'export GITHUB_TOKEN_ENC=%q\n' "$CACHE"
+        printf 'export GIT_CONFIG_COUNT=1\n'
+        printf 'export GIT_CONFIG_KEY_0=%q\n' "credential.https://github.com.helper"
+        printf 'export GIT_CONFIG_VALUE_0=%q\n' "$CRED_HELPER"
+    else
+        export GITHUB_TOKEN_ENC="$CACHE"
+        export GIT_CONFIG_COUNT=1
+        export GIT_CONFIG_KEY_0="credential.https://github.com.helper"
+        export GIT_CONFIG_VALUE_0="$CRED_HELPER"
+        exec "$@"
+    fi
+}
+
+main "$@"

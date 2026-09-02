@@ -2,6 +2,14 @@
 
 set -e -u -o pipefail
 
+github_token=''
+[[ -n ${GITHUB_TOKEN_ENC:-} ]] && github_token=$(sshseal decrypt < "$GITHUB_TOKEN_ENC")
+
+_curl_gh() {
+    { [[ -n $github_token ]] && printf 'header = "Authorization: Bearer %s"\n' "$github_token"; :; } \
+        | curl --config - "$@"
+}
+
 _search_repo() {
     local query
     if command -v gum &>/dev/null; then
@@ -11,7 +19,7 @@ _search_repo() {
     fi
     [[ -n $query ]] || return 1
 
-    curl -s "https://api.github.com/search/repositories?q=${query// /+}&per_page=20" \
+    _curl_gh -s "https://api.github.com/search/repositories?q=${query// /+}&per_page=20" \
         | jq -r '.items[] | "\(.full_name)\t★\(.stargazers_count)\t\(.description // "")"' \
         | column -t -s $'\t' \
         | fzf --prompt="repo> " --no-multi \
@@ -20,7 +28,7 @@ _search_repo() {
 
 _select_version() {
     local repo=$1
-    curl -s "https://api.github.com/repos/$repo/releases?per_page=20" \
+    _curl_gh -s "https://api.github.com/repos/$repo/releases?per_page=20" \
         | jq -r '.[] | "\(.tag_name)\t\(.name)\t\(if .prerelease then "[pre]" else "" end)"' \
         | column -t -s $'\t' \
         | fzf --prompt="version> " --no-multi \
@@ -30,7 +38,7 @@ _select_version() {
 _resolve_tag() {
     local repo=$1 version=$2
     if [[ $version == latest ]]; then
-        curl -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name'
+        _curl_gh -s "https://api.github.com/repos/$repo/releases/latest" | jq -r '.tag_name'
     else
         printf '%s\n' "$version"
     fi
@@ -63,5 +71,5 @@ mapfile -t urls < <(
 
 for url in "${urls[@]}"; do
     file=$(basename "$url")
-    curl -L --progress-bar "$url" -o "$file"
+    _curl_gh -L --progress-bar "$url" -o "$file"
 done

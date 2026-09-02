@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e -u -o pipefail
 
@@ -13,5 +13,6 @@ fi
 
 jq_bin=${JQ_BIN:-jq}
 
-curl -s "https://api.github.com/repos/$repo/$endpoint" \
+{ [ -n "${GITHUB_TOKEN_ENC:-}" ] && printf 'header = "Authorization: Bearer %s"\n' "$(sshseal decrypt < "$GITHUB_TOKEN_ENC")"; :; } \
+    | curl --config - -s "https://api.github.com/repos/$repo/$endpoint" \
     | "$jq_bin" -r '.assets.[].browser_download_url'
