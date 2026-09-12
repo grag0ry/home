@@ -40,6 +40,7 @@ if [[ -z "${CFG_SSH_AGENT+defined}" ]]; then
 fi
 
 : "${CFG_LEMONADE_SERVER=}"
+: "${CFG_LEMONADE_WSL_PRIVATE=}"
 : "${CFG_DEV_RC=}"
 
 : "${CFG_SET_NERDFONTS=}"

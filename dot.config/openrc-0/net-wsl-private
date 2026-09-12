@@ -1,0 +1,16 @@
+
+preup() {
+    if [ "${IFACE}" = "wsl-private" ]; then
+        ip link add dev wsl-private type dummy 2>/dev/null || true
+    fi
+    return 0
+}
+
+postdown() {
+    if [ "${IFACE}" = "wsl-private" ]; then
+        ip link delete dev wsl-private 2>/dev/null || true
+    fi
+    return 0
+}
+
+config_wsl_private="10.99.99.1/32"
