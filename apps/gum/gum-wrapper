@@ -1,0 +1,20 @@
+#!/bin/bash
+
+set -eE -u -o pipefail
+
+[[ -n ${TMUX:-} ]] || exec gum-orig "$@"
+(( $# == 0 )) && exec gum-orig
+case "$1" in
+    input|choose|confirm|file|filter)
+        r=0
+        d=$(mktemp -d)
+        trap "rm -rf ${d@Q}" EXIT
+        declare -px | grep '^declare -x GUM_[^=]*=' > "$d/env" || :
+        cmd="source ${d@Q}/env && gum-orig ${*@Q} >${d@Q}/out"
+        [[ -t 0 ]] || { cat > "$d/in"; cmd+=" <${d@Q}/in"; }
+        tmux display-popup -d "#{pane_current_path}" -E "$cmd" || r=$?
+        cat "$d/out"
+        exit $r
+    ;;
+    *) exec gum-orig "$@" ;;
+esac

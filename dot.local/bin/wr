@@ -1,0 +1,30 @@
+#!/bin/bash
+
+set -eE -u -o pipefail
+
+readonly PREFIX_DIR=$HOME/.local/opt/wp
+
+if (( $# == 0 )) || [[ $1 = "-" ]]; then
+    mkdir -vp "$PREFIX_DIR"
+    p=$(find "$PREFIX_DIR" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | fzf \
+        --footer "ctrl-n(new),ctrl-x(delete)" \
+        --bind "ctrl-n:change-query(--new)+print-query+accept" \
+        --bind "ctrl-x:print-query+accept"
+    )
+else
+    p=$1
+fi
+
+[[ "$p" = "--new" ]] && p=$(gum input --placeholder "Prefix name")
+if [[ ! -d "$PREFIX_DIR/$p" ]]; then
+    gum confirm "Create prefix '$p'?"
+    mkdir -vp "$PREFIX_DIR/$p"
+fi
+
+export WINEPREFIX="$PREFIX_DIR/$p"
+export WINEDLLOVERRIDES="winemenubuilder.exe=d"
+export WINEARCH=win64
+
+shift || :
+(( $# == 0 )) && exec winecfg
+exec wine "$@"

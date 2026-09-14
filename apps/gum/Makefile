@@ -14,6 +14,7 @@ gum: gum_linux_amd64.tar.gz
 .PHONY: build
 build: gum
 
-$(call install,00755,gum,.local/bin/gum)
+$(call install,00755,gum,.local/bin/gum-orig)
+$(call install,00755,gum-wrapper,.local/bin/gum)
 
 $(call update-simple)

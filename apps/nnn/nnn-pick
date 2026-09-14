@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -eE -u -o pipefail
+
+out=$(mktemp)
+trap "rm -f ${out@Q}" EXIT
+cmd="nnn -p ${out@Q}"
+r=0
+if [[ -n ${TMUX:-} ]]; then
+    tmux display-popup -d "#{pane_current_path}" -E "$cmd" || r=$?
+else
+    eval "$cmd" || r=$?
+fi
+cat "$out"
+exit $r
