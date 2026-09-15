@@ -1,0 +1,27 @@
+ARG USERNAME=app
+ARG USER_UID=M4_CFG_UID()
+ARG USER_GID=M4_CFG_GID()
+
+FROM docker.io/library/ubuntu:26.10
+
+USER root:root
+
+RUN apt-get update
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends msitools
+RUN rm -rf /var/lib/apt/lists/*
+
+RUN userdel -f -r ubuntu
+
+ARG USERNAME
+ARG USER_GID
+RUN groupadd -g "$USER_GID" "$USERNAME"
+
+ARG USERNAME
+ARG USER_UID
+ARG USER_GID
+RUN useradd -u "$USER_UID" -g "$USER_GID" -m -s /bin/bash "$USERNAME"
+
+WORKDIR /home/app
+USER app
+
+# vim: filetype=dockerfile

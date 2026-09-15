@@ -17,6 +17,9 @@ fi
 
 : "${CFG_HOME:=$HOME}"
 CFG_HOME=$(realpath -m "$CFG_HOME")
+CFG_USER=$(whoami)
+CFG_UID=$(id -u)
+CFG_GID=$(id -g)
 
 if [[ -z "${CFG_X+defined}" ]]; then
     CFG_X=
@@ -47,6 +50,8 @@ fi
 : "${CFG_SET_HIGHSCALE=}"
 
 : "${CFG_CARGO_NATIVE=$([[ -n $(command -v cargo) ]] && echo 1 || :)}"
+
+: "${CFG_DOCKER=$([[ -n $(command -v docker) ]] && echo 1 || :)}"
 
 : "${CFG_APP_RIPGREP=1}"
 : "${CFG_APP_FD=1}"

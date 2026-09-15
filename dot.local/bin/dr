@@ -57,6 +57,7 @@ run_cmd() {
         -v "/:/mnt/hfs:ro"
         --tmpfs /run
     )
+    [[ -v DR_WD ]] && DOCKER_ARGS+=(-v "$PWD:/wd" -w "/wd")
     [[ -v DR_ARGS ]] && eval "DOCKER_ARGS+=($DR_ARGS)"
     [[ -t 0 ]] && DOCKER_ARGS+=("-t")
     DOCKER_ARGS+=(-i "$image")
