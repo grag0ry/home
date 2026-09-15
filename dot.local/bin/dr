@@ -2,49 +2,173 @@
 
 set -eE -u -o pipefail
 
-declare -A img
-declare -a imgid
+readonly USAGE="usage: $0 [run [image|idx|-] [cmd...] | build [-f dockerfile] [-t tag] [context] | pull [image[:tag]]]"
 
-coproc lsimages {
-    docker images --format 'table {{printf "%s\x1f%s:%s" .ID .Repository .Tag}}'
+list_docker_images() {
+    local -n imgref=$1 idsref=$2
+    coproc lsimages {
+        docker images --format 'table {{printf "%s\x1f%s:%s" .ID .Repository .Tag}}'
+    }
+    local lsimages_pid=$!
+    IFS= read -r -u "${lsimages[0]}"
+    local line
+    while IFS=$'\x1f' read -a line -r -u "${lsimages[0]}"; do
+        # imgref/idsref are namerefs into the caller's arrays
+        # shellcheck disable=SC2004,SC2034
+        imgref[${line[0]}]=${line[1]}
+        idsref+=("${line[0]}")
+    done
+    wait "$lsimages_pid"
 }
-lsimages_pid=$!
-IFS= read -r -u "${lsimages[0]}"
-while IFS=$'\x1f' read -a line -r -u "${lsimages[0]}"; do
-    img[${line[0]}]=${line[1]}
-    imgid+=("${line[0]}")
-done
-wait $lsimages_pid || { echo >&2 "Failed to list docker images"; exit 1; }
-unset lsimages_pid lsimages
 
-if (( $# == 0 )) || [[ $1 = '-' ]]; then
-    (( ${#imgid[@]} > 0 )) || { echo >&2 "No docker images"; exit 1; }
-    image=$({
-        for (( i=0; i<${#imgid[@]}; i++ )); do
+resolve_image() {
+    local arg=${1:-}
+    if [[ -z $arg || $arg = '-' || $arg =~ ^[0-9]+$ ]]; then
+        local -A img
+        local -a imgid
+        list_docker_images img imgid || { echo >&2 "Failed to list docker images"; return 1; }
+        (( ${#imgid[@]} > 0 )) || { echo >&2 "No docker images"; return 1; }
+
+        if [[ $arg =~ ^[0-9]+$ ]]; then
+            (( arg < ${#imgid[@]} )) || { echo >&2 "No such image index: $arg"; return 1; }
+            printf '%s\n' "${imgid[arg]}"
+            return 0
+        fi
+
+        local i id
+        { for (( i=0; i<${#imgid[@]}; i++ )); do
             id=${imgid[i]}
-            printf "%2d %s %s\n" $i "$id" "${img[$id]}"
-        done \
-            | fzf --height 40% --tmux \
-            | awk '{print $3}'
-    })
-elif [[ $1 =~ ^[0-9]+$ && $1 -lt ${#imgid[@]} ]]; then
-    image=${imgid[$1]}
-else
-    image=$1
-fi
-shift || :
+            printf "%2d %s %s\n" "$i" "$id" "${img[$id]}"
+        done; } | fzf --prompt="image> " | awk '{print $3}'
+    else
+        printf '%s\n' "$arg"
+    fi
+}
 
-unset imgid img
+run_cmd() {
+    local image
+    image=$(resolve_image "${1:-}") || exit 1
+    [[ -n $image ]] || exit 0
+    shift || :
 
-DOCKER_ARGS=(
-    --rm
-    -w "/mnt/hfs/$PWD"
-    -v "/:/mnt/hfs:ro"
-    --tmpfs /run
-)
-[[ -v DR_ARGS ]] && eval "DOCKER_ARGS+=($DR_ARGS)"
-[[ -t 0 ]] && DOCKER_ARGS+=("-t")
-DOCKER_ARGS+=(-i "$image")
-(( $# == 0 )) && set -- /bin/bash -i -l
+    local DOCKER_ARGS=(
+        --rm
+        -w "/mnt/hfs/$PWD"
+        -v "/:/mnt/hfs:ro"
+        --tmpfs /run
+    )
+    [[ -v DR_ARGS ]] && eval "DOCKER_ARGS+=($DR_ARGS)"
+    [[ -t 0 ]] && DOCKER_ARGS+=("-t")
+    DOCKER_ARGS+=(-i "$image")
+    (( $# == 0 )) && set -- /bin/bash -i -l
 
-docker run "${DOCKER_ARGS[@]}" "$@"
+    exec docker run "${DOCKER_ARGS[@]}" "$@"
+}
+
+build_cmd() {
+    local dockerfile='' context='' tag=''
+    local OPTIND=1 o
+    while getopts "f:t:" o; do case "$o" in
+        f) dockerfile=$OPTARG ;;
+        t) tag=$OPTARG ;;
+        ?) echo >&2 "$USAGE"; exit 1 ;;
+    esac; done
+    shift $((OPTIND - 1))
+    context=${1:-}
+
+    if [[ -z $dockerfile && -z $context ]]; then
+        local picked
+        picked=$(nnn-pick) || exit 1
+        [[ -n $picked ]] || exit 1
+        if [[ -d $picked ]]; then
+            context=$picked
+            dockerfile="$context/Dockerfile"
+        else
+            dockerfile=$picked
+            context=$(dirname "$picked")
+        fi
+    elif [[ -z $context ]]; then
+        context=$(dirname "$dockerfile")
+    elif [[ -z $dockerfile ]]; then
+        dockerfile="$context/Dockerfile"
+    fi
+
+    [[ -f $dockerfile ]] || { echo >&2 "No such Dockerfile: $dockerfile"; exit 1; }
+
+    [[ -n $tag ]] || tag=$(gum input --header "image tag" --value "$(basename "$(realpath "$context")")")
+    [[ -n $tag ]] || exit 1
+
+    local BUILD_ARGS=()
+    [[ -v DR_BUILD_ARGS ]] && eval "BUILD_ARGS+=($DR_BUILD_ARGS)"
+
+    docker build -f "$dockerfile" -t "$tag" "${BUILD_ARGS[@]}" "$context"
+    gum confirm "Run $tag now?" && run_cmd "$tag"
+}
+
+search_dockerhub() {
+    local query
+    query=$(gum input --placeholder "search image..." --header "Docker Hub") || return 1
+    [[ -n $query ]] || return 1
+    curl -s "https://hub.docker.com/v2/search/repositories/?query=${query// /+}&page_size=25" \
+        | jq -r '.results[] | "\(.repo_name)\t★\(.star_count)\t\(if .is_official then "[official]" else "" end)\t\(.short_description // "")"' \
+        | column -t -s $'\t' \
+        | fzf --prompt="image> " \
+        | awk '{print $1}'
+}
+
+select_tag() {
+    local repo=$1 api_repo
+    [[ $repo == */* ]] && api_repo=$repo || api_repo="library/$repo"
+    curl -s "https://hub.docker.com/v2/repositories/$api_repo/tags?page_size=25&ordering=last_updated" \
+        | jq -r '.results[] | "\(.name)\t\(.last_updated)\t\(.full_size // 0)"' \
+        | column -t -s $'\t' \
+        | fzf --prompt="tag> " \
+        | awk '{print $1}'
+}
+
+pull_cmd() {
+    local ref=${1:-} repo='' tag=''
+    if [[ -z $ref ]]; then
+        repo=$(search_dockerhub) || exit 0
+        [[ -n $repo ]] || exit 0
+    else
+        local tail=${ref##*/}
+        if [[ $tail == *:* ]]; then
+            repo=${ref%:*}
+            tag=${ref##*:}
+        else
+            repo=$ref
+        fi
+    fi
+
+    if [[ -z $tag ]]; then
+        tag=$(select_tag "$repo") || exit 0
+        [[ -n $tag ]] || exit 0
+    fi
+
+    docker pull "$repo:$tag"
+    gum confirm "Run $repo:$tag now?" && run_cmd "$repo:$tag"
+}
+
+menu() {
+    local choice
+    choice=$(gum choose --header "dr: what do you want to do?" run build pull) || exit 0
+    case "$choice" in
+        run) run_cmd ;;
+        build) build_cmd ;;
+        pull) pull_cmd ;;
+    esac
+}
+
+main() {
+    case "${1:-}" in
+        run) shift; run_cmd "$@" ;;
+        build) shift; build_cmd "$@" ;;
+        pull) shift; pull_cmd "$@" ;;
+        -h|--help) echo "$USAGE" ;;
+        '') menu ;;
+        *) run_cmd "$@" ;;
+    esac
+}
+
+main "$@"
