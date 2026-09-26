@@ -43,21 +43,21 @@ $(M4CONFIG): $(CONFIG)
 	$(file >$@,$(M4CONFIG_DATA))
 	sed -i -e 's/\s*$$//' "$@"
 
-.PHONY: $(M4CONFIG)-clean
-clean: $(M4CONFIG)-clean
-$(M4CONFIG)-clean:
+.PHONY: clean-$(M4CONFIG)
+clean: clean-$(M4CONFIG)
+clean-$(M4CONFIG):
 	$(RM) "$(M4CONFIG)"
 
 define m4-target =
-.PHONY: $1-clean
 $1: $1.in $$(M4CONFIG)
 	$$(M4) $2 "$1.in" > "$$@"
 
-$1-clean:
+.PHONY: clean-$1
+clean-$1:
 	$$(RM) "$1"
 
 build: $1
-clean: $1-clean
+clean: clean-$1
 endef
 m4 = $(eval $(call m4-target,$1,$2))
 
@@ -68,36 +68,36 @@ $$(fake-$1):
 	$$(MAKE) -f $$(firstword $$(MAKEFILE_LIST)) $1
 	touch "$$@"
 
-.PHONY: $1-clean
-clean: $1-clean
-$1-clean:
+.PHONY: clean-$1
+clean: clean-$1
+clean-$1:
 	$$(RM) $$(fake-$1)
 
 endef
 fake = $(eval $(call fake-target,$1))
 
 define subdir-target =
-.PHONY: $1-build $1-install $1-clean $1-uninstall $1-update
-$1-build:
+.PHONY: build-$1 install-$1 clean-$1 uninstall-$1 update-$1
+build-$1:
 	$$(MAKE) -C "$1" build
 
-$1-install:
+install-$1:
 	$$(MAKE) -C "$1" install
 
-$1-uninstall:
+uninstall-$1:
 	$$(MAKE) -C "$1" uninstall
 
-$1-clean:
+clean-$1:
 	$$(MAKE) -C "$1" clean
 
-$1-update:
+update-$1:
 	$$(MAKE) -C "$1" update
 
-install: $1-install
-build: $1-build
-clean: $1-clean
-uninstall: $1-uninstall
-update: $1-update
+install: install-$1
+build: build-$1
+clean: clean-$1
+uninstall: uninstall-$1
+update: update-$1
 endef
 subdir = $(eval $(call subdir-target,$1))
 
@@ -108,13 +108,13 @@ $(IDXNAME)::
 	$(if $(install-index),: > "$@",)
 	$(install-index)
 
-.PHONY: $(IDXNAME)-clean
-clean: $(IDXNAME)-clean
-$(IDXNAME)-clean:
+.PHONY: clean-$(IDXNAME)
+clean: clean-$(IDXNAME)
+clean-$(IDXNAME):
 	rm -f "$(IDXNAME)"
 
-.PHONY: $(IDXNAME)-install
-$(IDXNAME)-install: $(IDXNAME)
+.PHONY: install-$(IDXNAME)
+install-$(IDXNAME): $(IDXNAME)
 	$(if $(wildcard $(IDXNAME)),install -m 00644 -D -T "$(IDXNAME)" "$(DESTDIR)$(CFG_HOME)/$(IDXDIR)$(IDXNAME)")
 
 UNINSTDIR = .local/lib/home/uninstall/
@@ -139,13 +139,13 @@ $(UNINSTNAME):: $(IDXNAME)
 	$(if $(wildcard $(IDXNAME)),@echo "Writing $@")
 	$(if $(wildcard $(IDXNAME)),$(file >$@,$(uninstall-sh)))
 
-.PHONY: $(UNINSTNAME)-clean
-clean: $(UNINSTNAME)-clean
-$(UNINSTNAME)-clean:
+.PHONY: clean-$(UNINSTNAME)
+clean: clean-$(UNINSTNAME)
+clean-$(UNINSTNAME):
 	rm -f "$(UNINSTNAME)"
 
-.PHONY: $(UNINSTNAME)-install
-$(UNINSTNAME)-install: $(UNINSTNAME)
+.PHONY: install-$(UNINSTNAME)
+install-$(UNINSTNAME): $(UNINSTNAME)
 	$(if $(wildcard $(UNINSTNAME)),install -m 00755 -D -T "$(UNINSTNAME)" "$(DESTDIR)$(CFG_HOME)/$(UNINSTDIR)$(UNINSTNAME)")
 
 
@@ -189,7 +189,7 @@ install: UNINSTALL=$(DESTDIR)$(CFG_HOME)/$(UNINSTDIR)$(UNINSTNAME)
 install:
 	$(if $(wildcard $(UNINSTALL)),$(UNINSTALL))
 	$(install-receipt)
-	$(MAKE) $(IDXNAME)-install $(UNINSTNAME)-install
+	$(MAKE) install-$(IDXNAME) install-$(UNINSTNAME)
 
 uninstall: UNINSTALL=$(DESTDIR)$(CFG_HOME)/$(UNINSTDIR)$(UNINSTNAME)
 uninstall:
