@@ -48,7 +48,7 @@ clean: clean-$(M4CONFIG)
 clean-$(M4CONFIG):
 	$(RM) "$(M4CONFIG)"
 
-define m4-target =
+define m4-impl =
 $1: $1.in $$(M4CONFIG)
 	$$(M4) $2 "$1.in" > "$$@"
 
@@ -59,9 +59,9 @@ clean-$1:
 build: $1
 clean: clean-$1
 endef
-m4 = $(eval $(call m4-target,$1,$2))
+m4 = $(eval $(call m4-impl,$1,$2))
 
-define fake-target =
+define fake-impl =
 .PHONY: $1
 fake-$1 = .fake-$1
 $$(fake-$1):
@@ -74,9 +74,9 @@ clean-$1:
 	$$(RM) $$(fake-$1)
 
 endef
-fake = $(eval $(call fake-target,$1))
+fake = $(eval $(call fake-impl,$1))
 
-define subdir-target =
+define subdir-impl =
 .PHONY: build-$1 install-$1 clean-$1 uninstall-$1 update-$1
 build-$1:
 	$$(MAKE) -C "$1" build
@@ -99,7 +99,7 @@ clean: clean-$1
 uninstall: uninstall-$1
 update: update-$1
 endef
-subdir = $(eval $(call subdir-target,$1))
+subdir = $(eval $(call subdir-impl,$1))
 
 IDXDIR = .local/lib/home/idx/
 IDXNAME = $(subst /,-,$(SUBDIR)idxfile)
@@ -149,41 +149,41 @@ install-$(UNINSTNAME): $(UNINSTNAME)
 	$(if $(wildcard $(UNINSTNAME)),install -m 00755 -D -T "$(UNINSTNAME)" "$(DESTDIR)$(CFG_HOME)/$(UNINSTDIR)$(UNINSTNAME)")
 
 
-define install-target =
+define install-impl =
 install-receipt += $$(NL)install -m $1 -D -T "$2" "$$(DESTDIR)$$(CFG_HOME)/$3"
 install-index += $$(NL)printf "%s\n" "$3" >> $$@
 install: $2
 
 endef
 
-define install-wildcard-target =
+define install-wildcard-impl =
 install-receipt += $$(NL)install -m $1 -D -t "$$(DESTDIR)$$(CFG_HOME)/$(dir $3)" $2
 install-index += $$(NL)printf "%s\n" $2 | awk -v p="$(dir $3)" '{print p $$$$0}' >> $$@
 install: build
 endef
 
-define install-dir-target =
+define install-dir-impl =
 install-receipt += $$(NL)mkdir -vp "$$(DESTDIR)$$(CFG_HOME)/$2"
 install-receipt += $$(NL)cp -vrf "$1/." "$$(DESTDIR)$$(CFG_HOME)/$2"
 install-index += $$(NL)( cd "$1" && find . -not -type d -printf "$2/%p\n" | sed -e s,/./,/, ) >> $$@
 install: build
 endef
 
-define install-symlink-target =
+define install-symlink-impl =
 install-receipt += $$(NL)ln -sf "$1" "$$(DESTDIR)$$(CFG_HOME)/$(dir $3)$2"
 install-index += $$(NL)printf "%s\n" "$(dir $3)$2" >> $$@
 endef
 
-define install-cmd-target =
+define install-cmd-impl =
 install-receipt += $$(NL)$1
 endef
 
 install-path = $(INSDIR)$(subst dot.,.,$1)
-install = $(eval $(call install-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
-install-dir = $(eval $(call install-dir-target,$1,$(if $2,$2,$(call install-path,$1))))
-install-wildcard = $(eval $(call install-wildcard-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
-install-symlink = $(eval $(call install-symlink-target,$1,$2,$(if $3,$3,$(call install-path,$2))))
-install-cmd=$(eval $(call install-cmd-target,$1))
+install = $(eval $(call install-impl,$1,$2,$(if $3,$3,$(call install-path,$2))))
+install-dir = $(eval $(call install-dir-impl,$1,$(if $2,$2,$(call install-path,$1))))
+install-wildcard = $(eval $(call install-wildcard-impl,$1,$2,$(if $3,$3,$(call install-path,$2))))
+install-symlink = $(eval $(call install-symlink-impl,$1,$2,$(if $3,$3,$(call install-path,$2))))
+install-cmd=$(eval $(call install-cmd-impl,$1))
 
 install: UNINSTALL=$(DESTDIR)$(CFG_HOME)/$(UNINSTDIR)$(UNINSTNAME)
 install:
@@ -195,7 +195,7 @@ uninstall: UNINSTALL=$(DESTDIR)$(CFG_HOME)/$(UNINSTDIR)$(UNINSTNAME)
 uninstall:
 	$(if $(wildcard $(UNINSTALL)),$(UNINSTALL))
 
-define update-simple-target =
+define update-simple-impl =
 .PHONY: update-simple
 update-simple:
 	$$(MAKE) clean
@@ -205,4 +205,4 @@ update-simple:
 update: update-simple
 endef
 
-update-simple = $(eval $(call update-simple-target))
+update-simple = $(eval $(call update-simple-impl))
