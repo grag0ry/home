@@ -64,11 +64,6 @@ m4 = $(eval $(call m4-impl,$1,$2))
 
 define fake-impl =
 .PHONY: $1
-ifneq ($(strip $2),)
-ifeq ($(findstring %,$1),)
-$1: $2
-endif
-endif
 fake-$1 = .fake-$1
 .fake-$1: $2
 	$$(MAKE) -f $$(firstword $$(MAKEFILE_LIST)) $$(@:.fake-%=%)
@@ -76,9 +71,16 @@ fake-$1 = .fake-$1
 
 .PHONY: clean-$1
 clean: clean-$1
+ifeq ($(findstring %,$1),)
+ifneq ($(strip $2),)
+$1: $2
+endif
 clean-$1:
 	$$(RM) $$(fake-$1)
-
+else
+clean-$1:
+	$$(RM) .fake-$(subst %,*,$1)
+endif
 endef
 fake = $(eval $(call fake-impl,$1))
 fake-target = $(1:%=.fake-%)
