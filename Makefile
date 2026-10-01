@@ -23,5 +23,6 @@ $(call install,00644,dot.Xresources)
 endif
 
 ifneq ($(CFG_DEV_RC),)
+$(call m4,dot.dev-rc)
 $(call install,00644,dot.dev-rc,.dev-rc)
 endif
