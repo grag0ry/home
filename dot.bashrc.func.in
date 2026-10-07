@@ -1,3 +1,4 @@
+# cheat: f - fuzzy-find a file/dir under the tree; cd into dirs, open files in $EDITOR (f -h for flags)
 f() {
     local dironly=; local hidden=; local noignore=
     local OPTIND; local o; while getopts "dHIh" o; do case "$o" in
@@ -43,6 +44,7 @@ f() {
     cd "$f" || return 2
 }
 
+# cheat: g - fuzzy ripgrep search with bat preview; Enter opens the match in $EDITOR at that line, does not cd (g -h for flags)
 g() {
     local rg='rg --column --line-number --no-heading --color=always --smart-case'
     local OPTIND; local o; while getopts "zh" o; do case "$o" in
@@ -65,6 +67,7 @@ g() {
     }
 }
 
+# cheat: n - nnn wrapper; cd's the shell to wherever you quit nnn from
 n() {
     if [[ -n "${NNNLVL:-}" ]]; then
         echo "nnn is already running"

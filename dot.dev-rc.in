@@ -6,8 +6,10 @@ fi
 
 m4_include(<[./dot.config/bash/colors.bash]>)
 
+# cheat: fzf defaults to a floating tmux popup at 40% height
 export FZF_DEFAULT_OPTS="$FZF_DEFAULT_OPTS --height 40% --tmux"
 
+# cheat: nnn plugins - press ;f / ;g inside nnn to launch the f/g shell functions above
 export NNN_DEV_RC="${BASH_SOURCE[0]}"
 export NNN_OPTS="AcEo"
 export NNN_TMPFILE="/tmp/nnn-lastd.$USER"
