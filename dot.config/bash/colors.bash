@@ -80,3 +80,14 @@ export GUM_SPIN_SPINNER_FOREGROUND="#80a0ff"
 
 export NNN_FCOLORS='b4b46f72fbb474b0b0b0b0'
 export NNN_COLORS='#6f74b4f672b0d1cc'
+
+# Upstream: github.com/bluz71/vim-moonfly-colors
+export STRACE_COLORS="\
+syscall=38;2;116;178;255:\
+argname=38;2;121;218;200:\
+argval=38;2;198;198;132:\
+const=38;2;230;94;114:\
+comment=3;38;2;148;148;148:\
+punct=38;2;198;198;198:\
+retval=38;2;54;198;146:\
+error=38;2;255;93;93"
