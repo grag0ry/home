@@ -1,5 +1,6 @@
 /config.mk
 /config.m4
+/win/config.m4
 /dot.bash_profile
 /dot.bashrc
 /dot.tmux.conf
