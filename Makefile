@@ -5,10 +5,14 @@ $(call subdir,dot.local)
 $(call subdir,dot.claude)
 $(call subdir,apps)
 
+$(call dl-gh-raw,bluz71/vim-moonfly-colors,master,extras/moonfly.tmux)
+
 $(call m4,dot.bash_profile)
 $(call m4,dot.bashrc)
 $(call m4,dot.tmux.conf)
 $(call m4,dot.gitconfig)
+
+dot.tmux.conf: moonfly.tmux
 
 $(call install,00644,dot.bashrc)
 $(call install,00644,dot.bash_profile)

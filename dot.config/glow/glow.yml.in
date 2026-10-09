@@ -1,3 +1,4 @@
+# Colors upstream palette: github.com/bluz71/vim-moonfly-colors
 style: "M4_CFG_HOME()/.config/glow/moonfly.json"
 mouse: true
 pager: false

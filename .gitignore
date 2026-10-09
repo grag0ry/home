@@ -1,11 +1,12 @@
-config.mk
-config.m4
-dot.bash_profile
-dot.bashrc
-dot.tmux.conf
-dot.gitconfig
-dot.Xresources
-dot.dev-rc
+/config.mk
+/config.m4
+/dot.bash_profile
+/dot.bashrc
+/dot.tmux.conf
+/dot.gitconfig
+/dot.Xresources
+/dot.dev-rc
+/moonfly.tmux
 
 idxfile
 *-idxfile

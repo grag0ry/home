@@ -33,6 +33,20 @@ github-assets = $(if $(CFG_APP_JQ),JQ_BIN="$(CFG_HOME)/.local/bin/jq" )$(PRJROOT
 	| grep -m1 "$(if $3,$3,.*)" \
 	| xargs -r -i $(call fetch-newer,{},$2)
 
+define dl-impl =
+$2:
+	$(call fetch-newer,$1,$2)
+
+.PHONY: clean-$2
+clean-$2:
+	$$(RM) "$2"
+
+build: $2
+clean: clean-$2
+endef
+dl = $(eval $(call dl-impl,$1,$(or $2,$(notdir $1))))
+dl-gh-raw = $(call dl,https://raw.githubusercontent.com/$1/$2/$3,$4)
+
 M4CONFIG = $(PRJROOT)config.m4
 M4=m4 -P $(M4CONFIG)
 M4CONFIG_DATA=m4_divert(-1)
@@ -108,7 +122,7 @@ clean: clean-$1
 uninstall: uninstall-$1
 update: update-$1
 endef
-subdir = $(eval $(call subdir-impl,$1))
+subdir = $(if $(NOSUBDIR),,$(eval $(call subdir-impl,$1)))
 
 IDXDIR = .local/lib/home/idx/
 IDXNAME = $(subst /,-,$(SUBDIR)idxfile)

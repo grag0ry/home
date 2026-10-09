@@ -1,5 +1,4 @@
-# Moonfly theme for delta
-# Upstream palette: github.com/bluz71/vim-moonfly-colors
+# Colors upstream palette: github.com/bluz71/vim-moonfly-colors
 
 [delta]
 syntax-theme = none
@@ -51,7 +50,7 @@ line-numbers-minus-style = "#ff5d5d"
 line-numbers-plus-style = "#36c692"
 
 # SYNTAX COLORS (bat theme integration)
-syntax-theme = "Moonfly"
+syntax-theme = "fly16"
 
 # WHITESPACE
 
