@@ -1,19 +1,18 @@
 include ../../common.mk
-include ../cargo.mk
+
+sshseal-x86_64-unknown-linux-musl.tar.gz:
+	$(call github-assets,grag0ry/sshseal,$@,linux-musl\.tar\.gz)
+
+sshseal: sshseal-x86_64-unknown-linux-musl.tar.gz
+	tar xzf "$<" "$@"
+	touch "$@"
 
 .PHONY: build
-build: cargo
-	cargo build --release
-
-$(call install,00755,target/release/sshseal,.local/bin/sshseal)
+build: sshseal
 
 .PHONY: clean
 clean:
-	cargo clean
+	$(RM) sshseal sshseal-x86_64-unknown-linux-musl.tar.gz
 
-.PHONY: update
-update: cargo
-	cargo update
-	$(MAKE) clean
-	$(MAKE) build
-	$(MAKE) install
+$(call install,00755,sshseal,.local/bin/sshseal)
+$(call update-simple)

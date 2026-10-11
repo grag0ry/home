@@ -14,6 +14,6 @@ fzf: fzf-linux_amd64.tar.gz
 .PHONY: build
 build: fzf
 
-$(call install,00755,fzf)
+$(call install,00755,fzf,.local/bin/fzf)
 
 $(call update-simple)
