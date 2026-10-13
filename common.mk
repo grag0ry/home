@@ -30,7 +30,7 @@ uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 wget = wget --progress=dot:giga "$1" -O "$2" --no-use-server-timestamps
 fetch-newer = "$(TOOLS)/fetch-newer.sh" "$1" "$2"
 github-assets = $(if $(CFG_APP_JQ),JQ_BIN="$(CFG_HOME)/.local/bin/jq" )$(PRJROOT)dot.local/bin/github-assets "$1" \
-	| grep -m1 "$(if $3,$3,.*)" \
+	| grep -m1 -- "$(if $3,$3,.*)" \
 	| xargs -r -i $(call fetch-newer,{},$2)
 
 define dl-impl =

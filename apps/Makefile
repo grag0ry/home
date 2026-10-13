@@ -22,3 +22,6 @@ endif
 ifneq ($(CFG_APP_SSHSEAL),)
 $(call subdir,sshseal)
 endif
+ifneq ($(CFG_APP_HMACSEAL),)
+$(call subdir,hmacseal)
+endif

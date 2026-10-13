@@ -60,6 +60,8 @@ fi
 : "${CFG_APP_GIT_DELTA=1}"
 : "${CFG_APP_HEXYL=1}"
 : "${CFG_APP_SSHSEAL=1}"
+: "${CFG_APP_HMACSEAL=1}"
+: "${CFG_HMACD=}"
 
 : "${CFG_APP_JQ=$([[ -z $(command -v jq) ]] && echo 1 || :)}"
 

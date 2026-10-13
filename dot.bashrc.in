@@ -20,6 +20,8 @@ m4_include(<[dot.bashrc.func.in]>)
 alias tmux="tmux -2"
 alias cat="bat"
 
+ts() { keyctl session - tmux -L "ts.$1" new -A -s "$1"; }
+
 if [[ -v NERDFONTS ]]; then
     _eza="eza --icons=always"
 else
