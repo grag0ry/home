@@ -42,8 +42,12 @@ case "$cmd" in
         rm -f "$SEALCACHE_DIR/$id"
         keyctl purge user "sealcache.$id" @s >/dev/null 2>&1 || :
     ;;
+    exists)
+        id=${1:?usage: exists <id>}
+        [[ -f "$SEALCACHE_DIR/$id" ]]
+    ;;
     *)
-        echo >&2 "usage: $0 encrypt|decrypt <id> [keyring-ttl] | delete <id>"
+        echo >&2 "usage: $0 encrypt|decrypt <id> [keyring-ttl] | delete|exists <id>"
         exit 1
     ;;
 esac
