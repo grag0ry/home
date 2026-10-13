@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -e -u -o pipefail
+
+: "${SEALCACHE_BACKEND:=hmacseal}"; readonly SEALCACHE_BACKEND
+: "${SEALCACHE_DIR:=${XDG_CACHE_HOME:-$HOME/.cache}/sealcache}"; readonly SEALCACHE_DIR
+
+cmd="${1:-}"
+shift || :
+case "$cmd" in
+    encrypt)
+        id=${1:?usage: encrypt <id> [keyring-ttl]}
+        ttl=${2:-0}
+        umask 077
+        mkdir -p "$SEALCACHE_DIR"
+        if (( ttl > 0 )); then
+            kid=$(keyctl padd user "sealcache.$id" @s)
+            keyctl timeout "$kid" "$ttl"
+            keyctl pipe "$kid"
+        else
+            cat
+        fi | "$SEALCACHE_BACKEND" encrypt > "$SEALCACHE_DIR/$id"
+    ;;
+    decrypt)
+        id=${1:?usage: decrypt <id> [keyring-ttl]}
+        ttl=${2:-0}
+        if kid=$(keyctl search @s user "sealcache.$id" 2>/dev/null); then
+            keyctl pipe "$kid"
+            exit 0
+        fi
+        [[ -f "$SEALCACHE_DIR/$id" ]] || exit 2
+        if (( ttl > 0 )); then
+            kid=$("$SEALCACHE_BACKEND" decrypt < "$SEALCACHE_DIR/$id" | keyctl padd user "sealcache.$id" @s)
+            keyctl timeout "$kid" "$ttl"
+            keyctl pipe "$kid"
+        else
+            "$SEALCACHE_BACKEND" decrypt < "$SEALCACHE_DIR/$id"
+        fi
+    ;;
+    delete)
+        id=${1:?usage: delete <id>}
+        rm -f "$SEALCACHE_DIR/$id"
+        keyctl purge user "sealcache.$id" @s >/dev/null 2>&1 || :
+    ;;
+    *)
+        echo >&2 "usage: $0 encrypt|decrypt <id> [keyring-ttl] | delete <id>"
+        exit 1
+    ;;
+esac
