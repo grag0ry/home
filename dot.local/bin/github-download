@@ -2,12 +2,12 @@
 
 set -e -u -o pipefail
 
-github_token=''
-[[ -n ${GITHUB_TOKEN_ENC:-} ]] && github_token=$(sshseal decrypt < "$GITHUB_TOKEN_ENC")
-
 _curl_gh() {
-    { [[ -n $github_token ]] && printf 'header = "Authorization: Bearer %s"\n' "$github_token"; :; } \
-        | curl --config - "$@"
+    {
+        [[ -n ${GITHUB_TOKEN_SEALCACHE_ID:-} ]] && echo -n 'header = "Authorization: Bearer ' \
+            && sealcache decrypt "$GITHUB_TOKEN_SEALCACHE_ID" "${GITHUB_TOKEN_SEALCACHE_TTL:-}"
+        :
+    } | curl --config - "$@"
 }
 
 _search_repo() {

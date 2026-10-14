@@ -13,6 +13,10 @@ fi
 
 jq_bin=${JQ_BIN:-jq}
 
-{ [ -n "${GITHUB_TOKEN_ENC:-}" ] && printf 'header = "Authorization: Bearer %s"\n' "$(sshseal decrypt < "$GITHUB_TOKEN_ENC")"; :; } \
+{
+    [[ -n ${GITHUB_TOKEN_SEALCACHE_ID:-} ]] && echo -n 'header = "Authorization: Bearer ' \
+        && sealcache decrypt "$GITHUB_TOKEN_SEALCACHE_ID" "${GITHUB_TOKEN_SEALCACHE_TTL:-}"
+    :
+} \
     | curl --config - -s "https://api.github.com/repos/$repo/$endpoint" \
     | "$jq_bin" -r '.assets.[].browser_download_url'
