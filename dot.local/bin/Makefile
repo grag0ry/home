@@ -6,6 +6,7 @@ $(call install,00755,wslwrap)
 $(call install,00755,wslenv)
 $(call install,00755,wslopen)
 $(call install,00755,wsldpapi)
+$(call install,00755,wslrunlock)
 $(call install-symlink,wslwrap,git)
 endif
 

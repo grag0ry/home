@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -e -u -o pipefail
+
+locked() {
+    /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe \
+        -NoProfile -NoLogo -ExecutionPolicy Bypass \
+        -Command '$ProgressPreference="SilentlyContinue"; Get-Process logonui >$null 2>&1'
+}
+
+ppid() { sed -ne 's/PPid:\s*\([0-9]\+\)/\1/p;T;q' "/proc/$1/status"; }
+
+watchdog() {
+    local pid ppid timeout poll start ts
+    ppid=$1
+    timeout=$2
+    pid=$BASHPID
+    (( poll = timeout > 100 ? timeout / 100 : 1 ))
+    start=0
+    while [[ $(ppid "$pid") -eq "$ppid" ]]; do
+        if locked; then
+            ts=$(date +%s)
+            if (( start == 0 )); then
+                start=$ts
+            elif (( start + timeout <= ts )); then
+                kill -- "$ppid"
+            fi
+        else
+            start=0
+        fi
+        sleep $poll
+    done
+}
+
+(( $# > 1 )) && [[ ${1:-} =~ ^([0-9]+)(s|m|h)?$ ]] || {
+    echo >&2 "usage: $0 DURATION COMMAND [ARG]..."
+    exit 1
+}
+
+(( timeout=10#${BASH_REMATCH[1]} ))
+case "${BASH_REMATCH[2]}" in
+    ''|s) ;;
+    m) (( timeout*=60 )) ;;
+    h) (( timeout*=3600 )) ;;
+esac
+shift
+
+watchdog "$$" "$timeout" &
+exec "$@"
