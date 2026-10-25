@@ -9,27 +9,15 @@ if [[ -z ${WSL_DISTRO_NAME} ]]; then
     export WSL_DISTRO_NAME
 fi
 
-cmdpath=$(wslpath C:/Windows/System32/cmd.exe 2>/dev/null)
-if [[ -n $cmdpath ]]; then
-    # shellcheck disable=SC2262,SC2139
-    alias cmd="${cmdpath@Q}"
-    wslwhich() { PATH="$WIN_PATH:$PATH" which "$@"; }
+[[ -x /mnt/c/Windows/System32/cmd.exe ]] || return 0
 
-    for name in powershell ipconfig gsudo wsl; do
-        path=$(wslwhich "$name.exe" 2>/dev/null)
-        # shellcheck disable=SC2139
-        [[ -n $path ]] && alias "$name=${path@Q}"
-    done
-    path=$(wslwhich pwsh.exe 2>/dev/null)
-    if [[ -n $path ]]; then
-        # shellcheck disable=SC2139
-        alias pwsh.exe="${path@Q}"
-        # shellcheck disable=SC2139
-        alias powershell="${path@Q}"
-    fi
-    unset name
-    unset path
-fi
-unset cmdpath
+alias cmd=/mnt/c/Windows/System32/cmd.exe
+alias powershell=/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+wslwhich() { PATH="$WIN_PATH:$PATH" which "$@"; }
+
+path=$(wslwhich pwsh.exe 2>/dev/null)
+# shellcheck disable=SC2139
+[[ -n $path ]] && alias pwsh.exe="${path@Q}"
+unset path
 
 # vim: filetype=bash
