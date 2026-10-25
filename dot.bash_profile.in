@@ -27,4 +27,6 @@ if [[ -z "$SSH_AUTH_SOCK" ]]; then
 fi
 ]>)m4_dnl
 
+keyctl new_session >/dev/null
+
 # vim: filetype=bash
