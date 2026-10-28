@@ -4,47 +4,66 @@ set -e -u -o pipefail
 
 O_EXPORT=
 O_RAW=
+O_FORCE=
 
-while getopts "er" opt; do case "$opt" in
+CACHE=${XDG_RUNTIME_DIR:-/tmp}/wslenv
+CACHE_CMD=${XDG_RUNTIME_DIR:-/tmp}/wslenv.cmd
+
+while getopts "erf" opt; do case "$opt" in
     e) O_EXPORT=1 ;;
-    r) O_RAW=1 ;;
+    r) O_RAW=1; CACHE=$CACHE.raw ;;
+    f) O_FORCE=1 ;;
     *) exit 1 ;;
 esac; done
 
-cd /mnt/c/Windows/System32/
+out() { if [[ -n $O_EXPORT ]]; then sed -e 's/^/export /' "$@"; else /bin/cat "$@"; fi; }
 
-declare -A WINENV
-while IFS= read -r line; do
-    [[ $line = *=* ]] || continue
-    var=${line%%=*}; var=${var@U}
-    val=${line#*=}; val=${val/%$'\r'/}
-    [[ -n $O_RAW ]] \
-        && printf "${O_EXPORT:+export }%q=%q\n" "$var" "$val" \
-        || WINENV[$var]=$val
-done < <(./cmd.exe /D /C set)
+if [[ -z $O_FORCE && -s $CACHE ]]; then
+    out "$CACHE"
+    exit 0
+fi
 
-[[ -n $O_RAW ]] && exit 0
+{
+    declare -A winenv
+    while IFS= read -r line; do
+        [[ $line = *=* ]] || continue
+        var=${line%%=*}; var=${var@U}
+        val=${line#*=}; val=${val/%$'\r'/}
+        [[ -n $O_RAW ]] \
+            && printf "%q=%q\n" "$var" "$val" \
+            || winenv[$var]=$val
+    done < <({
+        if [[ -z $O_FORCE && -s $CACHE_CMD ]]; then
+            /bin/cat "$CACHE_CMD"
+        else
+            umask 077
+            cd /mnt/c/Windows/System32/
+            ./cmd.exe /D /C set | tee "$CACHE_CMD"
+        fi
+    })
+    [[ -n $O_RAW ]] && exit 0
 
-xwslpath() {
-    [[ -n $1 ]] || return 0
-    local p=${1//\\//}
-    if [[ ${p:0:3} = [cC]:/ ]]; then
-        printf "%s\n" "/mnt/c/${p:3}"
-    else
-        wslpath "$p" 2>/dev/null || :
-    fi
-}
+    xwslpath() {
+        [[ -n $1 ]] || return 0
+        local p=${1//\\//}
+        if [[ ${p:0:3} = [cC]:/ ]]; then
+            printf "%s\n" "/mnt/c/${p:3}"
+        else
+            wslpath "$p" 2>/dev/null || :
+        fi
+    }
 
-WIN_PATH=$(\
-    tr '\\;' '/\n' <<< "${WINENV[PATH]}" \
-        | sed -ne 's,^\([a-zA-Z]\):/,/mnt/\L\1/,p' \
-        | tr '\n' ':'\
-)
+    WIN_PATH=$(\
+        tr '\\;' '/\n' <<< "${winenv[PATH]}" \
+            | sed -ne 's,^\([a-zA-Z]\):/,/mnt/\L\1/,p' \
+            | tr '\n' ':'\
+    )
+    printf "%q=%q\n" \
+        WIN_PATH "${WIN_PATH/%:/}" \
+        WIN_HOME "$(xwslpath "${winenv[USERPROFILE]:-}")" \
+        WIN_TEMP "$(xwslpath "${winenv[TEMP]:-}")" \
+        WIN_APPDATA "$(xwslpath "${winenv[APPDATA]:-}")" \
+        WIN_PROGRAMDATA "$(xwslpath "${winenv[PROGRAMDATA]:-}")" \
+        WIN_PROGRAMFILES "$(xwslpath "${winenv[PROGRAMFILES]:-}")"
 
-printf "${O_EXPORT:+export }%q=%q\n" \
-    WIN_PATH "${WIN_PATH/%:/}" \
-    WIN_HOME "$(xwslpath "${WINENV[USERPROFILE]:-}")" \
-    WIN_TEMP "$(xwslpath "${WINENV[TEMP]:-}")" \
-    WIN_APPDATA "$(xwslpath "${WINENV[APPDATA]:-}")" \
-    WIN_PROGRAMDATA "$(xwslpath "${WINENV[PROGRAMDATA]:-}")" \
-    WIN_PROGRAMFILES "$(xwslpath "${WINENV[PROGRAMFILES]:-}")"
+} | tee "$CACHE" | out
