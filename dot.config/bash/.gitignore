@@ -1,4 +1,4 @@
 /env.bash
 /wsl.profile.bash
 /colors.bash
-/moonfly-fzf.sh
+/colors.bash.d/moonfly-fzf.sh

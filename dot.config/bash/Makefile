@@ -1,8 +1,9 @@
 include ../../common.mk
 
-$(call dl-gh-raw,bluz71/vim-moonfly-colors,master,extras/moonfly-fzf.sh)
+$(call dl-gh-raw,bluz71/vim-moonfly-colors,master,extras/moonfly-fzf.sh,colors.bash.d/moonfly-fzf.sh)
 
 $(call m4,colors.bash)
+colors.bash: colors.bash.d/moonfly-fzf.sh
 $(call m4,env.bash)
 $(call m4,wsl.profile.bash)
 
