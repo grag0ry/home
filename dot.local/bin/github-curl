@@ -1,0 +1,8 @@
+#!/bin/bash
+
+exec curl --config <({
+    [[ -n ${GITHUB_TOKEN_SEALCACHE_ID:-} ]] \
+        && echo -n 'header = "Authorization: Bearer ' \
+        && sealcache decrypt "$GITHUB_TOKEN_SEALCACHE_ID" "${GITHUB_TOKEN_SEALCACHE_TTL:-}"
+    :
+}) "$@"

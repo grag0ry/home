@@ -11,6 +11,8 @@ $(call install-symlink,wslwrap,git)
 endif
 
 $(call install,00755,github-assets)
+$(call install,00755,github-clone)
+$(call install,00755,github-curl)
 $(call install,00755,github-download)
 $(call install,00755,github-auth)
 $(call install,00755,github-credential-helper)

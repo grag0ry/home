@@ -4,7 +4,7 @@ set -e -u -o pipefail
 
 SCRIPT_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")"); readonly SCRIPT_DIR
 CRED_HELPER="!$SCRIPT_DIR/github-credential-helper"; readonly CRED_HELPER
-KEYRING_TTL=60; readonly KEYRING_TTL
+KEYRING_TTL=900; readonly KEYRING_TTL
 
 die()  { gum log --level error "$*"; exit 1; }
 warn() { gum log --level warn "$*"; }
