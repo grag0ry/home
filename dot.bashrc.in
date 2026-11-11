@@ -22,6 +22,12 @@ alias cat="bat"
 
 ts() { tmux new -A -s "$1"; }
 
+claude() {
+    local root
+    root=$(git rev-parse --show-toplevel 2>/dev/null) || root=$PWD
+    (cd "$root" && command claude "$@")
+}
+
 if [[ -v NERDFONTS ]]; then
     _eza="eza --icons=always"
 else

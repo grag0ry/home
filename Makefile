@@ -12,6 +12,7 @@ $(call m4,dot.bashrc)
 $(call m4,dot.tmux.conf)
 $(call m4,dot.gitconfig)
 
+dot.bashrc: dot.bashrc.func.in
 dot.tmux.conf: moonfly.tmux
 
 $(call install,00644,dot.bashrc)
@@ -28,5 +29,6 @@ endif
 
 ifneq ($(CFG_DEV_RC),)
 $(call m4,dot.dev-rc)
+dot.dev-rc: dot.bashrc.func.in
 $(call install,00644,dot.dev-rc,.dev-rc)
 endif
