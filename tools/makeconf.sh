@@ -45,6 +45,7 @@ fi
 : "${CFG_LEMONADE_SERVER=}"
 : "${CFG_LEMONADE_WSL_PRIVATE=}"
 : "${CFG_DEV_RC=}"
+: "${CFG_DEV_RC_PS1_ID=dev}"
 
 : "${CFG_SET_NERDFONTS=}"
 : "${CFG_SET_HIGHSCALE=}"
