@@ -49,4 +49,19 @@ Always respond in Russian.
 
 - **Be pragmatic** - solve the problem that actually exists. Prefer proven, boring, maintainable solutions over theoretically elegant designs that add complexity without proportional practical benefit.
 
+## Code comments
+
+- A comment must add knowledge the code cannot express: why, an invariant,
+  a non-obvious constraint, the shape of a data structure.
+- Do not retell the code. Do not repeat another comment, the README, the PR
+  description or the tests. No long justifications or references the code
+  does not need.
+- For simple code, one line on what and one on why is usually enough.
+- Length follows the complexity of what the code cannot show, not a limit.
+  A non-trivial data structure or algorithm deserves a detailed comment:
+  memory layout, invariants, state before and after an operation, ASCII
+  diagrams.
+- Match the comment density of the surrounding file.
+- In a shared component, do not name a specific product or caller.
+
 @~/.claude/CLAUDE-private.md
